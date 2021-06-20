@@ -4,13 +4,13 @@ const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const mongoose = require("mongoose")
 const passport = require("passport")
-const passportLocal = require("passport-local")
-const bcrypt = require("bcrypt")
 const session = require('express-session')
+const dotenv = require('dotenv')
 const app = express()
-const User = require('./models/user')
+const users = require('./routes/users')
 
-mongoose.connect(`mongodb://localhost:27017/taskBoard`, {
+dotenv.config()
+mongoose.connect(process.env.DB_CONNECT, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true
@@ -25,55 +25,18 @@ app.use(
         resave: true,
         saveUninitialized: true,
     })
-);
-app.use(cookieParser("secretcode"));
-app.use(passport.initialize());
-app.use(passport.session());
-require("./passportConfig")(passport);
+)
+app.use(cookieParser("secretcode"))
+app.use(passport.initialize())
+app.use(passport.session())
+require("./passportConfig")(passport)
 
 app.use(cors({
     origin: ['http://localhost:3000', 'https://web.postman.co'],
     credentials: true
 }))
 
-app.post('/login', async (req, res, next) => {
-    passport.authenticate('local', (err, user, info) => {
-        if (err) throw err
-        if (!user) res.send('No User Exists')
-        else {
-            req.logIn(user, err => {
-                if (err) throw err
-                res.send('logged in')
-            })
-        }
-    })(req, res, next)
-})
-
-app.post("/register", (req, res) => {
-    User.findOne({username: req.body.username}, async (err, doc) => {
-        if (err) throw err;
-        if (doc) res.send("User Already Exists");
-        if (!doc) {
-            bcrypt.hash(req.body.password, 12, async function(err, hash) {
-                const newUser = new User({
-                    username: req.body.username,
-                    password: hash,
-                });
-                await newUser.save();
-                res.send("User Created", err, hash);
-            })
-        }
-    })
-})
-
-app.get('/logout', async (req, res) => {
-    req.logout()
-    res.send('sucessfully logged out')
-})
-
-app.get('/user', async (req, res) => {
-    res.send(req.user)
-})
+app.use('/api/user', users)
 
 app.listen(3001, () => {
     console.log('Listening on port 3001')
