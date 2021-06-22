@@ -1,6 +1,7 @@
 const passport = require("passport")
 const Users = require('./../models/user')
 const router = require('express').Router()
+const bcrypt = require('bcrypt')
 
 router.post('/login', async (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
@@ -15,7 +16,7 @@ router.post('/login', async (req, res, next) => {
     })(req, res, next)
 })
 
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res, next) => {
     Users.findOne({username: req.body.username}, async (err, doc) => {
         if (err) throw err;
         if (doc) res.send("User Already Exists");
@@ -26,7 +27,18 @@ router.post("/register", (req, res) => {
                     password: hash
                 });
                 await newUser.save();
-                res.send("User Created", err, hash);
+
+                passport.authenticate('local', (err, user, info) => {
+                    if (err) throw err
+                    if (!user) res.send('Username or password is wrong.')
+                    else {
+                        req.logIn(user, err => {
+                            if (err) throw err
+                            res.send("Successfully registered", err, hash);
+                        })
+                    }
+                })(req, res, next)
+
             })
         }
     })
@@ -38,6 +50,7 @@ router.get('/logout', async (req, res) => {
 })
 
 router.get('/user', async (req, res) => {
+    // return res.send('true')
     res.send(req.user)
 })
 
