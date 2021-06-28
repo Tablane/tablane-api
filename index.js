@@ -13,6 +13,7 @@ const Spaces = require('./models/space')
 const Boards = require('./models/board')
 const TaskGroups = require('./models/taskGroup')
 const Tasks = require('./models/task')
+const {wrapAsync, isLoggedIn} = require("./middleware");
 
 dotenv.config()
 mongoose.connect(process.env.DB_CONNECT, {
@@ -51,38 +52,49 @@ app.use('/api/user', users)
 //     res.send(id)
 // })
 
-app.get('/api/workspace/:workspace', async (req, res) => {
-    const t = await Workspaces.findOne().populate({
+app.get('/api/workspace/:workspaceId', isLoggedIn, wrapAsync(async (req, res) => {
+    const { workspaceId } = req.params
+    const workspace = await Workspaces.findOne({ id: workspaceId }).populate({
         path: 'spaces',
         model: 'Space',
         populate: {
             path: 'boards',
             model: 'Board',
-            populate: {
-                path: 'taskGroups',
-                model: 'TaskGroup',
-                populate: {
-                    path: 'tasks',
-                    model: 'Task',
-                }
-            }
+            select: 'name'
         }
     })
-    if (!req.user || t.owner !== req.user.username) return res.send('no perms')
-    res.json(t)
-})
+    if (workspace.owner !== req.user.username) return res.status(401).send('no perms')
+    res.json(workspace)
+}))
 
-app.get('/api/task/:task', async (req, res) => {
-    const task = await Tasks.find({_id: req.params.task})
-    res.send(task)
-})
-
-app.patch('/api/task/:task', async (req, res) => {
-    const {id, property, value} = req.body
-    Tasks.findByIdAndUpdate(id, {$set: {[`options.${property}`]: value}},
+app.patch('/api/task/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
+    const {boardId, taskGroupId, taskId} = req.params
+    const board = (await Boards.findOne({ _id: boardId })
+        .populate({path: 'taskGroups', model: 'TaskGroup', populate: {path: 'tasks', model: 'Task'}})).toJSON()
+    if (!board.members.includes(req.user.username)) return res.status(401).send('no perms')
+    const task = board.taskGroups
+        .find(x => x._id.toString() === taskGroupId).tasks
+        .find(x => x._id.toString() === taskId)._id
+    const {property, value} = req.body
+    if (!property || typeof value !== "number") return res.send('bad request')
+    Tasks.findByIdAndUpdate(task, {$set: {[`options.${property}`]: parseInt(value)}},
         {new: true, upsert: true, useFindAndModify: false}, (err, doc) => {
             res.send(doc)
         })
+})
+
+app.get('/api/board/:boardId', isLoggedIn, async (req, res) => {
+    const {boardId} = req.params
+    const board = await Boards.findOne({_id: boardId}).populate({
+        path: 'taskGroups',
+        model: 'TaskGroup',
+        populate: {
+            path: 'tasks',
+            model: 'Task',
+        }
+    })
+    if (!board.toJSON().members.includes(req.user.username)) return res.send('no perms')
+    res.json(board)
 })
 
 app.listen(3001, () => {

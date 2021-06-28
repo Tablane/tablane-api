@@ -2,6 +2,8 @@ const passport = require("passport")
 const Users = require('./../models/user')
 const router = require('express').Router()
 const bcrypt = require('bcrypt')
+const Workspaces = require('../models/workspace')
+const {wrapAsync, isLoggedIn} = require("../middleware");
 
 router.post('/login', async (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
@@ -10,7 +12,7 @@ router.post('/login', async (req, res, next) => {
         else {
             req.logIn(user, err => {
                 if (err) throw err
-                res.send('Successfully logged in')
+                res.json({ status: true, msg: 'Successfully logged in'})
             })
         }
     })(req, res, next)
@@ -34,7 +36,7 @@ router.post("/register", async (req, res, next) => {
                     else {
                         req.logIn(user, err => {
                             if (err) throw err
-                            res.send("Successfully registered", err, hash);
+                            res.json({ status: true, msg: 'Successfully registered'})
                         })
                     }
                 })(req, res, next)
@@ -50,8 +52,13 @@ router.get('/logout', async (req, res) => {
 })
 
 router.get('/user', async (req, res) => {
-    // return res.send('true')
+    // if (!req.user) res.status(401).send('false')
     res.send(req.user)
+})
+
+router.get('/workspace', isLoggedIn, async (req, res) => {
+    const user = await Users.findOne({ _id: req.user._id }).populate({path: 'workspaces', model: 'Workspace', select: 'owner id'})
+    res.send(user.toJSON().workspaces)
 })
 
 module.exports = router
