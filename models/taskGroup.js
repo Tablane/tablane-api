@@ -6,7 +6,6 @@ const taskGroupSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    attributes: [String],
     tasks: [
         {
             type: Schema.Types.ObjectId,

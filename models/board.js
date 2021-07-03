@@ -8,8 +8,29 @@ const boardSchema = new mongoose.Schema({
     },
     taskGroups: [
         {
-            type: Schema.Types.ObjectId,
-            ref: 'TaskGroup'
+            name: String,
+            tasks: [
+                {
+                    name: String,
+                    options: [
+                        {
+                            name: String,
+                            value: Number
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    members: [String],
+    attributes: [
+        {
+            type: Object,
+            name: String,
+            labels: {
+                name: String,
+                color: String,
+            }
         }
     ]
 })
