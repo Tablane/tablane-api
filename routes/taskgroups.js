@@ -13,4 +13,14 @@ router.post('/:boardId', async (req, res) => {
     res.send('OK')
 })
 
+router.delete('/:boardId/:taskGroupId', async (req, res) => {
+    const { boardId, taskGroupId } = req.params
+    const board = await Board.findById(boardId)
+    const taskGroup = board.taskGroups.find(x => x._id.toString() === taskGroupId)
+
+    board.taskGroups.splice(board.taskGroups.indexOf(taskGroup), 1)
+    await board.save()
+    res.send('OK')
+})
+
 module.exports = router
