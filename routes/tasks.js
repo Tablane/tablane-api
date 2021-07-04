@@ -27,7 +27,19 @@ router.post('/:boardId/:taskGroupId', isLoggedIn, async (req, res) => {
 
     board.taskGroups.find(x => x._id.toString() === taskGroupId).tasks.push(task)
 
-    await task.save()
+    await board.save()
+    res.send('OK')
+})
+
+router.delete('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
+    const { boardId, taskGroupId, taskId } = req.params
+    const board = await Board.findById(boardId)
+
+    const taskGroup = board.taskGroups.find(x => x._id.toString() === taskGroupId)
+    const task = taskGroup.tasks.find(x => x._id.toString() === taskId)
+    const taskIndex = taskGroup.tasks.indexOf(task)
+    taskGroup.tasks.splice(taskIndex, 1)
+
     await board.save()
     res.send('OK')
 })
