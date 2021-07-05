@@ -1,0 +1,28 @@
+const router = require('express').Router()
+const Workspace = require('../models/workspace')
+const Space = require('../models/space')
+const {wrapAsync, isLoggedIn} = require("../middleware");
+
+router.post('/:workspaceId', async (req, res) => {
+    const { workspaceId } = req.params
+    const workspace = await Workspace.findById(workspaceId)
+    const space = new Space({ name: req.body.name })
+
+    workspace.spaces.push(space)
+
+    await workspace.save()
+    res.send('OK')
+})
+
+router.delete('/:workspaceId/:spaceId', async (req, res) => {
+    const { workspaceId, spaceId } = req.params
+    const workspace = await Workspace.findById(workspaceId)
+
+    const spaceIndex = workspace.spaces.indexOf(workspace.spaces.find(x => x._id.toString() === spaceId))
+    workspace.spaces.splice(spaceIndex, 1)
+
+    await workspace.save()
+    res.send('OK')
+})
+
+module.exports = router
