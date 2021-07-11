@@ -13,6 +13,7 @@ const spaces = require('./routes/spaces')
 const boards = require('./routes/boards')
 const taskGroups = require('./routes/taskgroups')
 const tasks = require('./routes/tasks')
+const attributes = require('./routes/attributes')
 const MongoDBStore = require('connect-mongodb-session')(session);
 
 dotenv.config()
@@ -52,6 +53,7 @@ app.use('/api/space', spaces)
 app.use('/api/board', boards)
 app.use('/api/taskgroup', taskGroups)
 app.use('/api/task', tasks)
+app.use('/api/attribute', attributes)
 
 // app.get('/api/seeds', async (req, res) => {
 //     await Workspaces.deleteMany({})

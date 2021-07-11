@@ -8,12 +8,25 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
     const {boardId, taskGroupId, taskId} = req.params
     const {property, value} = req.body
 
-    Board.findById(boardId, function(err, doc) {
-        doc.taskGroups.find(x => x._id.toString() === taskGroupId).tasks
-            .find(x => x._id.toString() === taskId).options
-            .find(x => x.name === property).value = value
-        doc.save()
-    })
+    const board = await Board.findById(boardId)
+    const options = board.taskGroups
+        .find(x => x._id.toString() === taskGroupId).tasks
+        .find(x => x._id.toString() === taskId).options
+    const option = options.find(x => x.name === property)
+
+    if (option) option.value = value
+    else options.push({name: property, value})
+
+    board.save()
+
+    // Board.findById(boardId, function(err, doc) {
+    //     doc.taskGroups.find(x => x._id.toString() === taskGroupId).tasks
+    //         .find(x => x._id.toString() === taskId).options
+    //         .find(x => x.name === property).value = value
+    //     doc.save()
+    // })
+
+
     res.send('OK')
 })
 
@@ -21,9 +34,7 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
 router.post('/:boardId/:taskGroupId', isLoggedIn, async (req, res) => {
     const { boardId, taskGroupId } = req.params
     const board = await Board.findById(boardId)
-    let rawTask = {name: req.body.name, options: []}
-    board.attributes.map(x => rawTask.options.push({name: x.name, value: -1}))
-    const task = new Task(rawTask)
+    const task = new Task({name: req.body.name, options: []})
 
     board.taskGroups.find(x => x._id.toString() === taskGroupId).tasks.push(task)
 

@@ -16,16 +16,7 @@ router.post('/:workspaceId/:spaceId', async (req,res) => {
     const board = new Board({
         name: req.body.name,
         members: ['game'],
-        attributes: [
-            {
-                name: 'status',
-                labels: [{name: 'stuck', color:'#E2445C'}, {name: 'assigned', color: '#F9D900'}, {name: 'open', color: '#667684'}]
-            },
-            {
-                name: 'deployed',
-                labels: [{name: 'testing', color:'#E2445C'}, {name: 'yes', color: '#2ECD6F'}]
-            }
-        ],
+        attributes: [],
         taskGroups: []
     })
     workspace.spaces.find(x => x._id.toString() === spaceId).boards.push(board)
