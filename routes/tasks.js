@@ -19,14 +19,6 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
 
     board.save()
 
-    // Board.findById(boardId, function(err, doc) {
-    //     doc.taskGroups.find(x => x._id.toString() === taskGroupId).tasks
-    //         .find(x => x._id.toString() === taskId).options
-    //         .find(x => x.name === property).value = value
-    //     doc.save()
-    // })
-
-
     res.send('OK')
 })
 
