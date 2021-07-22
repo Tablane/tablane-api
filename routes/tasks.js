@@ -3,7 +3,7 @@ const {wrapAsync, isLoggedIn} = require("../middleware");
 const Task = require('../models/task')
 const Board = require('../models/board')
 
-// edit options task options
+// edit task options
 router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
     const {boardId, taskGroupId, taskId} = req.params
     const {property, value} = req.body
@@ -22,6 +22,24 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
     res.send('OK')
 })
 
+// clear status label
+router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, async (req, res) => {
+    const {boardId, taskGroupId, taskId, optionId} = req.params
+    const {property, value} = req.body
+
+    const board = await Board.findById(boardId)
+    const options = board.taskGroups
+        .find(x => x._id.toString() === taskGroupId).tasks
+        .find(x => x._id.toString() === taskId).options
+
+    const optionIndex = options.indexOf(options.find(x => x._id.toString() === optionId))
+    options.splice(optionIndex, 1)
+
+    board.save()
+
+    res.send('OK')
+})
+
 // add new Task
 router.post('/:boardId/:taskGroupId', isLoggedIn, async (req, res) => {
     const { boardId, taskGroupId } = req.params
@@ -34,6 +52,7 @@ router.post('/:boardId/:taskGroupId', isLoggedIn, async (req, res) => {
     res.send('OK')
 })
 
+// delete a task
 router.delete('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
     const { boardId, taskGroupId, taskId } = req.params
     const board = await Board.findById(boardId)

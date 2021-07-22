@@ -15,7 +15,7 @@ const boardSchema = new mongoose.Schema({
                     options: [
                         {
                             name: String,
-                            value: Number
+                            value: mongoose.Types.ObjectId
                         }
                     ]
                 }
@@ -26,8 +26,10 @@ const boardSchema = new mongoose.Schema({
     attributes: [
         {
             type: Object,
+            _id: mongoose.Types.ObjectId,
             name: String,
             labels: {
+                _id: mongoose.Types.ObjectId,
                 name: String,
                 color: String,
             }
