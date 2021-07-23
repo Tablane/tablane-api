@@ -22,6 +22,24 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
     res.send('OK')
 })
 
+// drag and drop task sorting
+router.patch('/:boardId/', isLoggedIn, async (req, res) => {
+    const {boardId} = req.params
+    const {result} = req.body
+
+    const board = await Board.findById(boardId)
+
+    const sourceTaskGroup = board.taskGroups.find(x => x._id.toString() === result.source.droppableId)
+    const sourceIndex = sourceTaskGroup.tasks.findIndex(x => x._id.toString() === result.draggableId)
+    const destinationTaskGroup = board.taskGroups.find(x => x._id.toString() === result.destination.droppableId)
+
+    const task = sourceTaskGroup.tasks.splice(sourceIndex, 1)
+    destinationTaskGroup.tasks.splice(result.destination.index, 0, task[0])
+
+    board.save()
+    res.send('OK')
+})
+
 // clear status label
 router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, async (req, res) => {
     const {boardId, taskGroupId, taskId, optionId} = req.params
