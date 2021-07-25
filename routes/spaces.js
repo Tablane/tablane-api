@@ -14,6 +14,19 @@ router.post('/:workspaceId', async (req, res) => {
     res.send('OK')
 })
 
+router.patch('/:workspaceId', async (req, res) => {
+    const {workspaceId} = req.params
+    const {result} = req.body
+
+    const workspace = await Workspace.findById(workspaceId)
+
+    const [space] = workspace.spaces.splice(result.source.index, 1)
+    workspace.spaces.splice(result.destination.index, 0, space)
+
+    workspace.save()
+    res.send('OK')
+})
+
 router.delete('/:workspaceId/:spaceId', async (req, res) => {
     const { workspaceId, spaceId } = req.params
     const workspace = await Workspace.findById(workspaceId)

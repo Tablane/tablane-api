@@ -10,6 +10,21 @@ router.get('/:boardId', isLoggedIn, async (req, res) => {
     res.json(board)
 })
 
+router.patch('/:workspaceId', async (req, res) => {
+    const {workspaceId} = req.params
+    const {result} = req.body
+
+    const workspace = await Workspace.findById(workspaceId)
+    const source = workspace.spaces.find(x => x._id.toString() === result.source.droppableId)
+    const destination = workspace.spaces.find(x => x._id.toString() === result.destination.droppableId)
+
+    const [board] = source.boards.splice(result.source.index, 1)
+    destination.boards.splice(result.destination.index, 0, board)
+
+    workspace.save()
+    res.send('OK')
+})
+
 router.post('/:workspaceId/:spaceId', async (req,res) => {
     const {workspaceId, spaceId} = req.params
     const workspace = await Workspace.findById(workspaceId)

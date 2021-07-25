@@ -19,6 +19,19 @@ router.post('/:boardId', async (req, res) => {
     res.send('OK')
 })
 
+router.patch('/:boardId', async (req, res) => {
+    const {boardId} = req.params
+    const {result} = req.body
+
+    const board = await Board.findById(boardId)
+
+    const [attribute] = board.attributes.splice(result.source.index, 1)
+    board.attributes.splice(result.destination.index, 0, attribute)
+
+    board.save()
+    res.send('OK')
+})
+
 router.put('/:boardId', async (req, res) => {
     const {boardId} = req.params
     const board = await Board.findById(boardId)
