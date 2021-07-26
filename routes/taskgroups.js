@@ -13,6 +13,17 @@ router.post('/:boardId', async (req, res) => {
     res.send('OK')
 })
 
+router.patch('/:boardId/:taskGroupId', async (req, res) => {
+    const { boardId, taskGroupId } = req.params
+    const { name } = req.body
+    const board = await Board.findById(boardId)
+
+    board.taskGroups.find(x => x._id.toString() === taskGroupId).name = name
+
+    await board.save()
+    res.send('OK')
+})
+
 router.patch('/:boardId', async (req, res) => {
     const { boardId } = req.params
     const { result } = req.body
