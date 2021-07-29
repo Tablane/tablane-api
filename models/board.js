@@ -14,8 +14,9 @@ const boardSchema = new mongoose.Schema({
                     name: String,
                     options: [
                         {
-                            name: String,
-                            value: mongoose.Types.ObjectId
+                            column: mongoose.Types.ObjectId,
+                            value: mongoose.Types.ObjectId,
+                            type: { type: String }
                         }
                     ]
                 }

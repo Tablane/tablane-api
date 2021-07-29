@@ -19,6 +19,18 @@ router.post('/:boardId', async (req, res) => {
     res.send('OK')
 })
 
+router.patch('/:boardId/:attributeId', async (req, res) => {
+    const {boardId, attributeId} = req.params
+    const {name} = req.body
+    const board = await Board.findById(boardId)
+
+    board.attributes.find(x => x._id.toString() === attributeId).name = name
+    board.markModified(`attributes`)
+
+    board.save()
+    res.send('OK')
+})
+
 router.patch('/:boardId', async (req, res) => {
     const {boardId} = req.params
     const {result} = req.body
@@ -52,6 +64,7 @@ router.delete('/:boardId/:attributeId', async (req, res) => {
 
     const attributeIndex = board.attributes.indexOf(board.attributes.find(x => x._id.toString() === attributeId))
     if (attributeIndex > -1) board.attributes.splice(attributeIndex, 1)
+    board.markModified(`attributes`)
 
     await board.save()
     res.send('OK')

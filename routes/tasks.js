@@ -6,19 +6,18 @@ const Board = require('../models/board')
 // edit task options
 router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
     const {boardId, taskGroupId, taskId} = req.params
-    const {property, value} = req.body
+    const {column, value} = req.body
 
     const board = await Board.findById(boardId)
     const options = board.taskGroups
         .find(x => x._id.toString() === taskGroupId).tasks
         .find(x => x._id.toString() === taskId).options
-    const option = options.find(x => x.name === property)
+    const option = options.find(x => x.column.toString() === column)
 
     if (option) option.value = value
-    else options.push({name: property, value})
+    else options.push({column, value, type: 'label'})
 
     board.save()
-
     res.send('OK')
 })
 

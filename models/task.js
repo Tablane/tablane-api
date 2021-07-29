@@ -4,9 +4,13 @@ const taskSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    options: {
-        type: Object
-    }
+    options: [
+        {
+            column: mongoose.Types.ObjectId,
+            value: mongoose.Types.ObjectId,
+            type: { type: String }
+        }
+    ]
 })
 
 module.exports = mongoose.model('Task', taskSchema)
