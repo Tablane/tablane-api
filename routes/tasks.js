@@ -6,16 +6,21 @@ const Board = require('../models/board')
 // edit task options
 router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
     const {boardId, taskGroupId, taskId} = req.params
-    const {column, value} = req.body
-
+    const {column, value, type} = req.body
     const board = await Board.findById(boardId)
+
     const options = board.taskGroups
         .find(x => x._id.toString() === taskGroupId).tasks
         .find(x => x._id.toString() === taskId).options
     const option = options.find(x => x.column.toString() === column)
 
-    if (option) option.value = value
-    else options.push({column, value, type: 'label'})
+    if (type === 'status') {
+        if (option) option.value = value
+        else options.push({column, value})
+    } else if (type === 'text') {
+        if (option) option.value = value
+        else options.push({column, value})
+    }
 
     board.save()
     res.send('OK')
@@ -42,9 +47,8 @@ router.patch('/:boardId/', isLoggedIn, async (req, res) => {
 // clear status label
 router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, async (req, res) => {
     const {boardId, taskGroupId, taskId, optionId} = req.params
-    const {property, value} = req.body
-
     const board = await Board.findById(boardId)
+
     const options = board.taskGroups
         .find(x => x._id.toString() === taskGroupId).tasks
         .find(x => x._id.toString() === taskId).options
@@ -53,16 +57,16 @@ router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, async (req
     options.splice(optionIndex, 1)
 
     board.save()
-
     res.send('OK')
 })
 
 // add new Task
 router.post('/:boardId/:taskGroupId', isLoggedIn, async (req, res) => {
     const { boardId, taskGroupId } = req.params
+    const { name } = req.body
     const board = await Board.findById(boardId)
-    const task = new Task({name: req.body.name, options: []})
 
+    const task = new Task({name, options: []})
     board.taskGroups.find(x => x._id.toString() === taskGroupId).tasks.push(task)
 
     await board.save()

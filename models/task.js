@@ -8,7 +8,6 @@ const taskSchema = new mongoose.Schema({
         {
             column: mongoose.Types.ObjectId,
             value: mongoose.Types.ObjectId,
-            type: { type: String }
         }
     ]
 })

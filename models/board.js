@@ -15,8 +15,7 @@ const boardSchema = new mongoose.Schema({
                     options: [
                         {
                             column: mongoose.Types.ObjectId,
-                            value: mongoose.Types.ObjectId,
-                            type: { type: String }
+                            value: String,
                         }
                     ]
                 }
@@ -26,14 +25,16 @@ const boardSchema = new mongoose.Schema({
     members: [String],
     attributes: [
         {
-            type: Object,
+            type: { type: String },
             _id: mongoose.Types.ObjectId,
             name: String,
-            labels: {
-                _id: mongoose.Types.ObjectId,
-                name: String,
-                color: String,
-            }
+            labels: [
+                {
+                    _id: mongoose.Types.ObjectId,
+                    name: String,
+                    color: String,
+                }
+            ]
         }
     ]
 })

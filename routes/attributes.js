@@ -6,13 +6,22 @@ const mongoose = require('mongoose')
 
 router.post('/:boardId', async (req, res) => {
     const {boardId} = req.params
+    const {type} = req.body
     const board = await Board.findById(boardId)
 
-    const attribute = {
-        name: req.body.name,
-        labels: [],
+    let name = type.charAt(0).toUpperCase() + type.slice(1)
+    while (board.attributes.filter(x => x.name === name).length >= 1) {
+        if (/ \d$/gm.test(name)) {
+            name = name.substring(0, name.length-1) + ` ${parseInt(name.slice(-1))+1}`
+        } else name = name + ' 1'
+    }
+
+    let attribute = {
+        name,
+        type: type,
         _id: new mongoose.Types.ObjectId()
     }
+    if (type === 'status') attribute.labels = []
     board.attributes.push(attribute)
 
     await board.save()
@@ -31,6 +40,7 @@ router.patch('/:boardId/:attributeId', async (req, res) => {
     res.send('OK')
 })
 
+// drag and drop sorting
 router.patch('/:boardId', async (req, res) => {
     const {boardId} = req.params
     const {result} = req.body
