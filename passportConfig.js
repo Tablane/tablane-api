@@ -16,7 +16,11 @@ module.exports = function (passport) {
                         return done(null, false);
                     }
                 })
-            });
+            }).populate({
+                path: 'workspaces',
+                model: 'Workspace',
+                select: ['id', 'name']
+            })
         })
     )
 
@@ -27,9 +31,14 @@ module.exports = function (passport) {
         User.findOne({ _id: id }, (err, user) => {
             const userInformation = {
                 username: user.username,
+                workspaces: user.workspaces,
                 _id: user._id,
             }
             cb(err, userInformation);
+        }).populate({
+            path: 'workspaces',
+            model: 'Workspace',
+            select: ['id', 'name']
         })
     })
 }

@@ -2,8 +2,10 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const workspaceSchema = new mongoose.Schema({
+    name: String,
     id: {
         type: Number,
+        unique: true,
         required: true
     },
     owner: {

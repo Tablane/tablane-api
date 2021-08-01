@@ -12,7 +12,7 @@ router.post('/login', async (req, res, next) => {
         else {
             req.logIn(user, err => {
                 if (err) throw err
-                res.json({ status: true, msg: 'Successfully logged in'})
+                res.json({ status: true, msg: ['Successfully logged in', req.user] })
             })
         }
     })(req, res, next)
@@ -24,12 +24,15 @@ router.post("/register", async (req, res, next) => {
         if (doc) res.send("User Already Exists");
         if (!doc) {
             bcrypt.hash(req.body.password, 12, async function(err, hash) {
+
                 const newUser = new Users({
                     username: req.body.username,
-                    password: hash
+                    password: hash,
+                    workspaces: []
                 });
                 await newUser.save();
 
+                // login user after register
                 passport.authenticate('local', (err, user, info) => {
                     if (err) throw err
                     if (!user) res.send('Username or password is wrong.')
