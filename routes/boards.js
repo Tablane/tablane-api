@@ -3,6 +3,7 @@ const Board = require('../models/board')
 const Workspace = require('../models/workspace')
 const {wrapAsync, isLoggedIn} = require("../middleware");
 
+// get board info
 router.get('/:boardId', isLoggedIn, async (req, res) => {
     const {boardId} = req.params
     const board = await Board.findById(boardId)
@@ -10,6 +11,35 @@ router.get('/:boardId', isLoggedIn, async (req, res) => {
     res.json(board)
 })
 
+// get shared board info
+router.get('/share/:boardId', isLoggedIn, async (req, res) => {
+    const {boardId} = req.params
+    let board = await Board.findById(boardId)
+
+    if (!board.sharing) return res.status(403).send('Forbidden')
+    res.json({
+        name: board.name,
+        attributes: board.attributes,
+        taskGroups: board.taskGroups
+    })
+})
+
+// change share state
+router.patch('/share/:boardId', async (req, res) => {
+    const {boardId} = req.params
+    const {share} = req.body
+
+    const board = await Board.findById(boardId)
+    board.sharing = share
+
+    board.save()
+    res.json({
+        status: 'OK',
+        boardId
+    })
+})
+
+// drag and drop sorting
 router.patch('/:workspaceId', async (req, res) => {
     const {workspaceId} = req.params
     const {result} = req.body
@@ -25,6 +55,7 @@ router.patch('/:workspaceId', async (req, res) => {
     res.send('OK')
 })
 
+// create new board
 router.post('/:workspaceId/:spaceId', async (req,res) => {
     const {workspaceId, spaceId} = req.params
     const workspace = await Workspace.findById(workspaceId)
@@ -40,10 +71,11 @@ router.post('/:workspaceId/:spaceId', async (req,res) => {
     res.send('OK')
 })
 
+// delete board
 router.delete('/:workspaceId/:spaceId/:boardId', async (req, res) => {
     const {workspaceId, spaceId, boardId} = req.params
     const workspace = await Workspace.findById(workspaceId)
-    const board = await Board.findByIdAndDelete(boardId)
+    await Board.findByIdAndDelete(boardId)
 
     workspace.spaces.find(x => x._id.toString() === spaceId).boards.remove(boardId)
 
