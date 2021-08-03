@@ -1,10 +1,10 @@
 const router = require('express').Router()
-const {wrapAsync, isLoggedIn} = require("../middleware");
+const {wrapAsync, isLoggedIn, hasBoardPerms} = require("../middleware");
 const Task = require('../models/task')
 const Board = require('../models/board')
 
 // edit task options
-router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
+router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasBoardPerms, async (req, res) => {
     const {boardId, taskGroupId, taskId} = req.params
     const {column, value, type} = req.body
     const board = await Board.findById(boardId)
@@ -27,7 +27,7 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
 })
 
 // drag and drop task sorting
-router.patch('/:boardId/', isLoggedIn, async (req, res) => {
+router.patch('/:boardId/', isLoggedIn, hasBoardPerms, async (req, res) => {
     const {boardId} = req.params
     const {result} = req.body
 
@@ -45,7 +45,7 @@ router.patch('/:boardId/', isLoggedIn, async (req, res) => {
 })
 
 // clear status label
-router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, async (req, res) => {
+router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, hasBoardPerms, async (req, res) => {
     const {boardId, taskGroupId, taskId, optionId} = req.params
     const board = await Board.findById(boardId)
 
@@ -61,7 +61,7 @@ router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, async (req
 })
 
 // add new Task
-router.post('/:boardId/:taskGroupId', isLoggedIn, async (req, res) => {
+router.post('/:boardId/:taskGroupId', isLoggedIn, hasBoardPerms, async (req, res) => {
     const { boardId, taskGroupId } = req.params
     const { name } = req.body
     const board = await Board.findById(boardId)
@@ -74,7 +74,7 @@ router.post('/:boardId/:taskGroupId', isLoggedIn, async (req, res) => {
 })
 
 // delete a task
-router.delete('/:boardId/:taskGroupId/:taskId', isLoggedIn, async (req, res) => {
+router.delete('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasBoardPerms, async (req, res) => {
     const { boardId, taskGroupId, taskId } = req.params
     const board = await Board.findById(boardId)
 

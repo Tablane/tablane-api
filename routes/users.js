@@ -59,9 +59,4 @@ router.get('/user', async (req, res) => {
     res.send(req.user)
 })
 
-router.get('/workspace', isLoggedIn, async (req, res) => {
-    const user = await Users.findById(req.user._id).populate({path: 'workspaces', model: 'Workspace', select: 'owner id'})
-    res.send(user.toJSON().workspaces)
-})
-
 module.exports = router

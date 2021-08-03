@@ -1,18 +1,18 @@
 const router = require('express').Router()
 const Board = require('../models/board')
 const Workspace = require('../models/workspace')
-const {wrapAsync, isLoggedIn} = require("../middleware");
+const {wrapAsync, isLoggedIn, hasBoardPerms, hasWorkspacePerms} = require("../middleware");
 
 // get board info
-router.get('/:boardId', isLoggedIn, async (req, res) => {
+router.get('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
     const {boardId} = req.params
     const board = await Board.findById(boardId)
-    if (!board.toJSON().members.includes(req.user.username)) return res.send('no perms')
+
     res.json(board)
 })
 
 // get shared board info
-router.get('/share/:boardId', isLoggedIn, async (req, res) => {
+router.get('/share/:boardId', async (req, res) => {
     const {boardId} = req.params
     let board = await Board.findById(boardId)
 
@@ -25,7 +25,7 @@ router.get('/share/:boardId', isLoggedIn, async (req, res) => {
 })
 
 // change share state
-router.patch('/share/:boardId', async (req, res) => {
+router.patch('/share/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
     const {boardId} = req.params
     const {share} = req.body
 
@@ -40,7 +40,7 @@ router.patch('/share/:boardId', async (req, res) => {
 })
 
 // drag and drop sorting
-router.patch('/:workspaceId', async (req, res) => {
+router.patch('/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, res) => {
     const {workspaceId} = req.params
     const {result} = req.body
 
@@ -56,7 +56,7 @@ router.patch('/:workspaceId', async (req, res) => {
 })
 
 // create new board
-router.post('/:workspaceId/:spaceId', async (req,res) => {
+router.post('/:workspaceId/:spaceId', isLoggedIn, hasWorkspacePerms, async (req,res) => {
     const {workspaceId, spaceId} = req.params
     const workspace = await Workspace.findById(workspaceId)
     const board = new Board({
@@ -72,7 +72,7 @@ router.post('/:workspaceId/:spaceId', async (req,res) => {
 })
 
 // delete board
-router.delete('/:workspaceId/:spaceId/:boardId', async (req, res) => {
+router.delete('/:workspaceId/:spaceId/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
     const {workspaceId, spaceId, boardId} = req.params
     const workspace = await Workspace.findById(workspaceId)
     await Board.findByIdAndDelete(boardId)

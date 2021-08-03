@@ -8,10 +8,12 @@ const workspaceSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
-    owner: {
-        type: String,
-        required: true,
-    },
+    members: [
+        {
+            user: Schema.Types.ObjectId,
+            role: String
+        }
+    ],
     spaces: [
         {
             name: String,

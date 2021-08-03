@@ -6,6 +6,10 @@ const boardSchema = new Schema({
         type: String,
         required: true
     },
+    workspace: {
+        type: Schema.Types.ObjectId,
+        ref: 'Workspace'
+    },
     sharing: {
         type: Boolean
     },
@@ -25,7 +29,6 @@ const boardSchema = new Schema({
             ]
         }
     ],
-    members: [String],
     attributes: [
         {
             type: { type: String },
