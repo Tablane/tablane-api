@@ -61,9 +61,10 @@ router.post('/:workspaceId/:spaceId', isLoggedIn, hasWorkspacePerms, async (req,
     const workspace = await Workspace.findById(workspaceId)
     const board = new Board({
         name: req.body.name,
-        members: ['game'],
+        workspace: workspace,
         attributes: [],
-        taskGroups: []
+        taskGroups: [],
+        sharing: false
     })
     workspace.spaces.find(x => x._id.toString() === spaceId).boards.push(board)
     await workspace.save()

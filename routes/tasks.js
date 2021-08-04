@@ -9,6 +9,13 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasBoardPerms, async 
     const {column, value, type} = req.body
     const board = await Board.findById(boardId)
 
+    // edit name
+    if (type === 'name') {
+        board.taskGroups
+            .find(x => x._id.toString() === taskGroupId).tasks
+            .find(x => x._id.toString() === taskId).name = req.body.name
+    }
+
     const options = board.taskGroups
         .find(x => x._id.toString() === taskGroupId).tasks
         .find(x => x._id.toString() === taskId).options
