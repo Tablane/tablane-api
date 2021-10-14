@@ -40,7 +40,7 @@ router.patch('/share/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
 })
 
 // drag and drop sorting
-router.patch('/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, res) => {
+router.patch('/drag/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, res) => {
     const {workspaceId} = req.params
     const {result} = req.body
 
@@ -69,6 +69,18 @@ router.post('/:workspaceId/:spaceId', isLoggedIn, hasWorkspacePerms, async (req,
     workspace.spaces.find(x => x._id.toString() === spaceId).boards.push(board)
     await workspace.save()
     await board.save()
+    res.send('OK')
+})
+
+// edit board name
+router.patch('/:boardId', isLoggedIn, hasBoardPerms, async (req,res) => {
+    const {boardId} = req.params
+    const {name} = req.body
+    const board = await Board.findById(boardId)
+
+    board.name = name
+
+    board.save()
     res.send('OK')
 })
 
