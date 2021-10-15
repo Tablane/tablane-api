@@ -3,6 +3,7 @@ const Workspace = require('../models/workspace')
 const Space = require('../models/space')
 const {wrapAsync, isLoggedIn, hasWorkspacePerms} = require("../middleware");
 
+// create new space
 router.post('/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, res) => {
     const { workspaceId } = req.params
     const workspace = await Workspace.findById(workspaceId)
@@ -14,7 +15,8 @@ router.post('/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, res) => 
     res.send('OK')
 })
 
-router.patch('/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, res) => {
+// drag and drop space
+router.patch('/drag/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, res) => {
     const {workspaceId} = req.params
     const {result} = req.body
 
@@ -27,6 +29,21 @@ router.patch('/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, res) =>
     res.send('OK')
 })
 
+// edit space name
+router.patch('/:workspaceId/:spaceId', isLoggedIn, hasWorkspacePerms, async (req,res) => {
+    const { workspaceId, spaceId } = req.params
+    const {name} = req.body
+
+    const workspace = await Workspace.findById(workspaceId)
+    const space = workspace.spaces.find(x => x._id.toString() === spaceId)
+
+    space.name = name
+
+    workspace.save()
+    res.send('OK')
+})
+
+// delete a space
 router.delete('/:workspaceId/:spaceId', isLoggedIn, hasWorkspacePerms, async (req, res) => {
     const { workspaceId, spaceId } = req.params
     const workspace = await Workspace.findById(workspaceId)
