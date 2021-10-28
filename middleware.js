@@ -16,7 +16,7 @@ module.exports.hasBoardPerms = async (req, res, next) => {
     })
 
     const user = board.workspace.members.find(x => x.user.toString() === req.user._id.toString())
-    if (user && (user.role === 'owner' || user.role === 'member')) {
+    if (user && (user.role === 'owner' || user.role === 'admin' || user.role === 'member')) {
         next()
     } else {
         res.status(403).send('Forbidden - no write perms b')
@@ -33,7 +33,7 @@ module.exports.hasWorkspacePerms = async (req, res, next) => {
     }
 
     const user = workspace.members.find(x => x.user.toString() === req.user._id.toString())
-    if (user && (user.role === 'owner' || user.role === 'member')) {
+    if (user && (user.role === 'owner' || user.role === 'admin' || user.role === 'member')) {
         next()
     } else {
         res.status(403).send('Forbidden - no write perms w')
