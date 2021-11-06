@@ -1,7 +1,6 @@
 const router = require('express').Router()
 const Board = require('../models/board')
-const Workspace = require('../models/workspace')
-const {wrapAsync, isLoggedIn, hasBoardPerms} = require("../middleware");
+const {isLoggedIn, hasBoardPerms} = require("../middleware");
 const mongoose = require('mongoose')
 
 router.post('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
@@ -75,6 +74,12 @@ router.delete('/:boardId/:attributeId', isLoggedIn, hasBoardPerms, async (req, r
     const attributeIndex = board.attributes.indexOf(board.attributes.find(x => x._id.toString() === attributeId))
     if (attributeIndex > -1) board.attributes.splice(attributeIndex, 1)
     board.markModified(`attributes`)
+
+    board.taskGroups.map(taskGroup => {
+        taskGroup.tasks.map(task => {
+            task.options = task.options.filter(option => option.column.toString() !== attributeId)
+        })
+    })
 
     await board.save()
     res.send('OK')
