@@ -11,7 +11,11 @@ const workspaceSchema = new mongoose.Schema({
     members: [
         {
             user: Schema.Types.ObjectId,
-            role: String
+            role: {
+                type: String,
+                enum: ['owner', 'admin', 'member', 'guest']
+            },
+            labels: Array
         }
     ],
     spaces: [
