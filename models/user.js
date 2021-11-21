@@ -15,7 +15,12 @@ const userSchema = new mongoose.Schema({
             type: Schema.Types.ObjectId,
             ref: 'Workspace'
         }
-    ]
+    ],
+    email: {
+        type: String,
+        required: true,
+        match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/
+    }
 })
 
 module.exports = mongoose.model('User', userSchema)
