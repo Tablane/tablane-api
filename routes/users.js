@@ -5,23 +5,23 @@ const bcrypt = require('bcrypt')
 const Workspaces = require('../models/workspace')
 const {wrapAsync, isLoggedIn} = require("../middleware");
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', wrapAsync(async (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
         if (err) throw err
-        if (!user) res.send('Username or password is wrong.')
+        if (!user) res.json({success: false, error: ['Username or password is wrong.']})
         else {
             req.logIn(user, err => {
                 if (err) throw err
-                res.json({ status: true, msg: ['Successfully logged in', req.user] })
+                res.json({success: true, user: req.user})
             })
         }
     })(req, res, next)
-})
+}))
 
-router.post("/register", async (req, res, next) => {
+router.post("/register", wrapAsync(async (req, res, next) => {
     Users.findOne({username: req.body.username}, async (err, doc) => {
         if (err) throw err;
-        if (doc) res.send("User Already Exists");
+        if (doc) res.json({success: false, error: ['User Already Exists.']})
         if (!doc) {
             bcrypt.hash(req.body.password, 12, async function(err, hash) {
 
@@ -31,33 +31,35 @@ router.post("/register", async (req, res, next) => {
                     workspaces: [],
                     email: req.body.email
                 });
-                await newUser.save();
-
-                // login user after register
-                passport.authenticate('local', (err, user, info) => {
-                    if (err) throw err
-                    if (!user) res.send('Username or password is wrong.')
-                    else {
-                        req.logIn(user, err => {
-                            if (err) throw err
-                            res.json({ status: true, msg: 'Successfully registered'})
-                        })
-                    }
-                })(req, res, next)
-
+                await newUser.save().then(x => {
+                    // login user after register
+                    passport.authenticate('local', (err, user, info) => {
+                        if (err) throw err
+                        if (!user) res.json({success: false, error: ['Username or password is wrong.']})
+                        else {
+                            req.logIn(user, err => {
+                                if (err) throw err
+                                res.json({success: true, user: req.user})
+                            })
+                        }
+                    })(req, res, next)
+                }).catch(err => {
+                    console.log(err)
+                    return res.json({success: false, error: ['Email wrong']})
+                });
             })
         }
     })
-})
+}))
 
-router.get('/logout', async (req, res) => {
+router.get('/logout', wrapAsync(async (req, res) => {
     req.logout()
     res.send('Successfully logged out')
-})
+}))
 
-router.get('/user', async (req, res) => {
+router.get('/user', wrapAsync(async (req, res) => {
     // if (!req.user) res.status(401).send('false')
-    res.send(req.user)
-})
+    res.json({user: req.user})
+}))
 
 module.exports = router
