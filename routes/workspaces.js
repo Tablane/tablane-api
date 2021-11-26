@@ -11,6 +11,34 @@ const {wrapAsync, isLoggedIn, hasWorkspacePerms} = require("../middleware");
 //     res.send(id)
 // })
 
+// create a new workspace
+router.post('/', isLoggedIn, wrapAsync(async (req, res) => {
+    const user = await User.findById(req.user._id)
+    const { name } = req.body
+
+    let id = ''
+    while (id.length < 4) id += Math.floor(Math.random() * 10)
+
+    const workspace = new Workspace({
+        id: id,
+        spaces: [],
+        name: name,
+        members: [
+            {
+                labels: [],
+                user: req.user._id,
+                role: 'owner'
+            }
+        ]
+    })
+
+    user.workspaces.push(workspace)
+
+    await user.save()
+    await workspace.save()
+    res.json({success: true, id})
+}))
+
 // get workspace data
 router.get('/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (req, res) => {
     const { workspaceId } = req.params
@@ -41,6 +69,7 @@ router.patch('/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (re
 // delete workspace
 router.delete('/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (req, res) => {
     const { workspaceId } = req.params
+
     await Workspace.findByIdAndDelete(workspaceId)
 
     res.send('OK')
