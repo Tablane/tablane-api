@@ -34,9 +34,16 @@ app.use(
         store: new MongoDBStore({
             uri: process.env.DB_CONNECT,
             collection: 'session'
-        })
+        }),
+        cookie: {
+            secure: process.env.NODE_ENV === "production",
+            httpOnly: true,
+            sameSite: process.env.NODE_ENV === "production" ? 'none' : 'strict',
+            maxAge: 60 * 60 * 24 * 1000
+        }
     })
 )
+app.set('trust proxy', 1);
 app.use(cookieParser(process.env.COOKIE_SECRET))
 app.use(passport.initialize())
 app.use(passport.session())
