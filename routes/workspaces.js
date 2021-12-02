@@ -3,14 +3,6 @@ const Workspace = require('../models/workspace')
 const User = require('../models/user')
 const {wrapAsync, isLoggedIn, hasWorkspacePerms} = require("../middleware");
 
-// router.get('/new', (req, res) => {
-//     let id = ''
-//     while (id.length < 4) {
-//         id += Math.floor(Math.random() * 10)
-//     }
-//     res.send(id)
-// })
-
 // create a new workspace
 router.post('/', isLoggedIn, wrapAsync(async (req, res) => {
     const user = await User.findById(req.user._id)
