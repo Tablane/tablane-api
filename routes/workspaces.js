@@ -9,7 +9,15 @@ router.post('/', isLoggedIn, wrapAsync(async (req, res) => {
     const { name } = req.body
 
     let id = ''
-    while (id.length < 4) id += Math.floor(Math.random() * 10)
+    while (true) {
+        while (id.length < 4) id += Math.floor(Math.random() * 10)
+
+        // check for duplicate
+        const workspace = await Workspace.findOne({id: id})
+
+        if (workspace) id = ''
+        else break
+    }
 
     const workspace = new Workspace({
         id: id,
