@@ -58,7 +58,6 @@ router.get('/logout', wrapAsync(async (req, res) => {
 }))
 
 router.get('/user', wrapAsync(async (req, res) => {
-    // if (!req.user) res.status(401).send('false')
     res.json({user: req.user})
 }))
 

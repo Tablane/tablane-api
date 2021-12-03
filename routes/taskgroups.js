@@ -1,9 +1,9 @@
 const router = require('express').Router()
-const {wrapAsync, isLoggedIn, hasBoardPerms} = require("../middleware");
+const {wrapAsync, isLoggedIn, hasWritePerms} = require("../middleware");
 const TaskGroup = require('../models/taskGroup')
 const Board = require('../models/board')
 
-router.post('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.post('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
     const { boardId } = req.params
     const taskGroup = new TaskGroup({name: req.body.name, tasks: []})
     const board = await Board.findById(boardId)
@@ -13,7 +13,7 @@ router.post('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
     res.send('OK')
 })
 
-router.patch('/:boardId/:taskGroupId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.patch('/:boardId/:taskGroupId', isLoggedIn, hasWritePerms, async (req, res) => {
     const { boardId, taskGroupId } = req.params
     const { name } = req.body
     const board = await Board.findById(boardId)
@@ -24,7 +24,7 @@ router.patch('/:boardId/:taskGroupId', isLoggedIn, hasBoardPerms, async (req, re
     res.send('OK')
 })
 
-router.patch('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.patch('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
     const { boardId } = req.params
     const { result } = req.body
     const board = await Board.findById(boardId)
@@ -36,7 +36,7 @@ router.patch('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
     res.send('OK')
 })
 
-router.delete('/:boardId/:taskGroupId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.delete('/:boardId/:taskGroupId', isLoggedIn, hasWritePerms, async (req, res) => {
     const { boardId, taskGroupId } = req.params
     const board = await Board.findById(boardId)
     const taskGroup = board.taskGroups.find(x => x._id.toString() === taskGroupId)

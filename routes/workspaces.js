@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const Workspace = require('../models/workspace')
 const User = require('../models/user')
-const {wrapAsync, isLoggedIn, hasWorkspacePerms} = require("../middleware");
+const {wrapAsync, isLoggedIn, hasWorkspacePerms, hasReadPerms, hasAdminPerms} = require("../middleware");
 
 // create a new workspace
 router.post('/', isLoggedIn, wrapAsync(async (req, res) => {
@@ -40,9 +40,9 @@ router.post('/', isLoggedIn, wrapAsync(async (req, res) => {
 }))
 
 // get workspace data
-router.get('/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (req, res) => {
+router.get('/:workspaceId', isLoggedIn, hasReadPerms, wrapAsync(async (req, res) => {
     const { workspaceId } = req.params
-    const workspace = await Workspace.findOne({ id: workspaceId }).populate({
+    let workspace = await Workspace.findOne({ id: workspaceId }).populate({
         path: 'spaces.boards',
         model: 'Board',
         select: 'name'
@@ -51,11 +51,16 @@ router.get('/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (req,
         model: 'User',
         select: ['_id', 'username', 'email']
     })
+
+    // only send workspace members to admins
+    const role = workspace.members.find(x => x.user._id.toString() === req.user._id.toString()).role
+    if (role !== 'owner' && role !== 'admin') workspace.members = undefined
+
     res.json(workspace)
 }))
 
 // change workspace name
-router.patch('/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (req, res) => {
+router.patch('/:workspaceId', isLoggedIn, hasAdminPerms, wrapAsync(async (req, res) => {
     const { workspaceId } = req.params
     const { name } = req.body
     const workspace = await Workspace.findById(workspaceId)
@@ -67,7 +72,7 @@ router.patch('/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (re
 }))
 
 // delete workspace
-router.delete('/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (req, res) => {
+router.delete('/:workspaceId', isLoggedIn, hasAdminPerms, wrapAsync(async (req, res) => {
     const { workspaceId } = req.params
 
     await Workspace.findByIdAndDelete(workspaceId)
@@ -76,7 +81,7 @@ router.delete('/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (r
 }))
 
 // invite user to workspace
-router.post('/user/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (req, res) => {
+router.post('/user/:workspaceId', isLoggedIn, hasAdminPerms, wrapAsync(async (req, res) => {
     const { workspaceId } = req.params
     const { email, role } = req.body
     const workspace = await Workspace.findById(workspaceId)
@@ -98,7 +103,7 @@ router.post('/user/:workspaceId', isLoggedIn, hasWorkspacePerms, wrapAsync(async
 }))
 
 // remove a user from a workspace
-router.delete('/user/:workspaceId/:userId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (req, res) => {
+router.delete('/user/:workspaceId/:userId', isLoggedIn, hasAdminPerms, wrapAsync(async (req, res) => {
     const { workspaceId, userId } = req.params
     const workspace = await Workspace.findById(workspaceId)
     const user = await User.findById(userId)
@@ -123,7 +128,7 @@ router.delete('/user/:workspaceId/:userId', isLoggedIn, hasWorkspacePerms, wrapA
 }))
 
 // change role of user
-router.patch('/user/:workspaceId/:userId', isLoggedIn, hasWorkspacePerms, wrapAsync(async (req, res) => {
+router.patch('/user/:workspaceId/:userId', isLoggedIn, hasAdminPerms, wrapAsync(async (req, res) => {
     const { workspaceId, userId } = req.params
     const { role } = req.body
     const workspace = await Workspace.findById(workspaceId)

@@ -1,9 +1,9 @@
 const router = require('express').Router()
 const Board = require('../models/board')
-const {isLoggedIn, hasBoardPerms} = require("../middleware");
+const {isLoggedIn, hasWritePerms} = require("../middleware");
 const mongoose = require('mongoose')
 
-router.post('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.post('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
     const {boardId} = req.params
     const {type} = req.body
     const board = await Board.findById(boardId)
@@ -27,7 +27,7 @@ router.post('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
     res.send('OK')
 })
 
-router.patch('/:boardId/:attributeId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.patch('/:boardId/:attributeId', isLoggedIn, hasWritePerms, async (req, res) => {
     const {boardId, attributeId} = req.params
     const {name} = req.body
     const board = await Board.findById(boardId)
@@ -40,7 +40,7 @@ router.patch('/:boardId/:attributeId', isLoggedIn, hasBoardPerms, async (req, re
 })
 
 // drag and drop sorting
-router.patch('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.patch('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
     const {boardId} = req.params
     const {result} = req.body
 
@@ -53,7 +53,7 @@ router.patch('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
     res.send('OK')
 })
 
-router.put('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.put('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
     const {boardId} = req.params
     const board = await Board.findById(boardId)
 
@@ -67,7 +67,7 @@ router.put('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
     res.send('OK')
 })
 
-router.delete('/:boardId/:attributeId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.delete('/:boardId/:attributeId', isLoggedIn, hasWritePerms, async (req, res) => {
     const {boardId, attributeId} = req.params
     const board = await Board.findById(boardId)
 

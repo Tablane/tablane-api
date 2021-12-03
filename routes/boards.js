@@ -1,18 +1,18 @@
 const router = require('express').Router()
 const Board = require('../models/board')
 const Workspace = require('../models/workspace')
-const {wrapAsync, isLoggedIn, hasBoardPerms, hasWorkspacePerms} = require("../middleware");
+const {wrapAsync, isLoggedIn, hasReadPerms, hasWritePerms} = require("../middleware");
 
 // get board info
-router.get('/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.get('/:boardId', isLoggedIn, hasReadPerms, wrapAsync(async (req, res) => {
     const {boardId} = req.params
     const board = await Board.findById(boardId)
 
     res.json(board)
-})
+}))
 
 // get shared board info
-router.get('/share/:boardId', async (req, res) => {
+router.get('/share/:boardId', wrapAsync(async (req, res) => {
     const {boardId} = req.params
     let board = await Board.findById(boardId)
 
@@ -22,10 +22,10 @@ router.get('/share/:boardId', async (req, res) => {
         attributes: board.attributes,
         taskGroups: board.taskGroups
     })
-})
+}))
 
 // change share state
-router.patch('/share/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.patch('/share/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId} = req.params
     const {share} = req.body
 
@@ -37,10 +37,10 @@ router.patch('/share/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
         status: 'OK',
         boardId
     })
-})
+}))
 
 // drag and drop sorting
-router.patch('/drag/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, res) => {
+router.patch('/drag/:workspaceId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {workspaceId} = req.params
     const {result} = req.body
 
@@ -53,10 +53,10 @@ router.patch('/drag/:workspaceId', isLoggedIn, hasWorkspacePerms, async (req, re
 
     workspace.save()
     res.send('OK')
-})
+}))
 
 // create new board
-router.post('/:workspaceId/:spaceId', isLoggedIn, hasWorkspacePerms, async (req,res) => {
+router.post('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, wrapAsync(async (req,res) => {
     const {workspaceId, spaceId} = req.params
     const workspace = await Workspace.findById(workspaceId)
     const board = new Board({
@@ -70,10 +70,10 @@ router.post('/:workspaceId/:spaceId', isLoggedIn, hasWorkspacePerms, async (req,
     await workspace.save()
     await board.save()
     res.send('OK')
-})
+}))
 
 // edit board name
-router.patch('/:boardId', isLoggedIn, hasBoardPerms, async (req,res) => {
+router.patch('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req,res) => {
     const {boardId} = req.params
     const {name} = req.body
     const board = await Board.findById(boardId)
@@ -82,10 +82,10 @@ router.patch('/:boardId', isLoggedIn, hasBoardPerms, async (req,res) => {
 
     board.save()
     res.send('OK')
-})
+}))
 
 // delete board
-router.delete('/:workspaceId/:spaceId/:boardId', isLoggedIn, hasBoardPerms, async (req, res) => {
+router.delete('/:workspaceId/:spaceId/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {workspaceId, spaceId, boardId} = req.params
     const workspace = await Workspace.findById(workspaceId)
     await Board.findByIdAndDelete(boardId)
@@ -94,6 +94,6 @@ router.delete('/:workspaceId/:spaceId/:boardId', isLoggedIn, hasBoardPerms, asyn
 
     await workspace.save()
     res.send('OK')
-})
+}))
 
 module.exports = router
