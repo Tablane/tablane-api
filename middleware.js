@@ -27,7 +27,7 @@ const checkPerms = async (req) => {
 
 module.exports.isLoggedIn = (req, res, next) => {
     if (!req.user) {
-        return res.status(403).send('Forbidden - logged in')
+        return res.status(403).send('Forbidden - not logged in')
     } else next()
 }
 
