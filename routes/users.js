@@ -2,8 +2,7 @@ const passport = require("passport")
 const Users = require('./../models/user')
 const router = require('express').Router()
 const bcrypt = require('bcrypt')
-const Workspaces = require('../models/workspace')
-const {wrapAsync, isLoggedIn} = require("../middleware");
+const {wrapAsync} = require("../middleware");
 
 router.post('/login', wrapAsync(async (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
@@ -57,7 +56,8 @@ router.get('/logout', wrapAsync(async (req, res) => {
     res.send('Successfully logged out')
 }))
 
-router.get('/user', wrapAsync(async (req, res) => {
+router.get('/', wrapAsync(async (req, res) => {
+    if (!req.user) return res.status(401).send('Unauthorized')
     res.json({user: req.user})
 }))
 
