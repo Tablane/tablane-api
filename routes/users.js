@@ -7,7 +7,7 @@ const {wrapAsync} = require("../middleware");
 router.post('/login', wrapAsync(async (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
         if (err) throw err
-        if (!user) res.json({success: false, error: ['Username or password is wrong.']})
+        if (!user) res.status(403).send('Forbidden')
         else {
             req.logIn(user, err => {
                 if (err) throw err
@@ -20,7 +20,7 @@ router.post('/login', wrapAsync(async (req, res, next) => {
 router.post("/register", wrapAsync(async (req, res, next) => {
     Users.findOne({username: req.body.username}, async (err, doc) => {
         if (err) throw err;
-        if (doc) res.json({success: false, error: ['User Already Exists.']})
+        if (doc) res.status(409).send('User Already Exists')
         if (!doc) {
             bcrypt.hash(req.body.password, 12, async function(err, hash) {
 
@@ -53,7 +53,7 @@ router.post("/register", wrapAsync(async (req, res, next) => {
 
 router.get('/logout', wrapAsync(async (req, res) => {
     req.logout()
-    res.send('Successfully logged out')
+    res.status(200).send('OK')
 }))
 
 router.get('/', wrapAsync(async (req, res) => {
