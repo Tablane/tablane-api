@@ -70,10 +70,10 @@ router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, hasWritePe
 // add new Task
 router.post('/:boardId/:taskGroupId', isLoggedIn, hasWritePerms, async (req, res) => {
     const { boardId, taskGroupId } = req.params
-    const { name } = req.body
+    const { name, _id } = req.body
     const board = await Board.findById(boardId)
 
-    const task = new Task({name, options: []})
+    const task = new Task({_id, name, options: []})
     board.taskGroups.find(x => x._id.toString() === taskGroupId).tasks.push(task)
 
     await board.save()
