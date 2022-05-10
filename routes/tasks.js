@@ -33,24 +33,6 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, async 
     res.send('OK')
 })
 
-// drag and drop task sorting
-router.patch('/:boardId/', isLoggedIn, hasWritePerms, async (req, res) => {
-    const {boardId} = req.params
-    const {result} = req.body
-
-    const board = await Board.findById(boardId)
-
-    const sourceTaskGroup = board.taskGroups.find(x => x._id.toString() === result.source.droppableId)
-    const sourceIndex = sourceTaskGroup.tasks.findIndex(x => x._id.toString() === result.draggableId)
-    const destinationTaskGroup = board.taskGroups.find(x => x._id.toString() === result.destination.droppableId)
-
-    const task = sourceTaskGroup.tasks.splice(sourceIndex, 1)
-    destinationTaskGroup.tasks.splice(result.destination.index, 0, task[0])
-
-    board.save()
-    res.send('OK')
-})
-
 // clear status label
 router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, hasWritePerms, async (req, res) => {
     const {boardId, taskGroupId, taskId, optionId} = req.params
@@ -60,8 +42,25 @@ router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, hasWritePe
         .find(x => x._id.toString() === taskGroupId).tasks
         .find(x => x._id.toString() === taskId).options
 
-    const optionIndex = options.indexOf(options.find(x => x._id.toString() === optionId))
-    options.splice(optionIndex, 1)
+    const optionIndex = options.indexOf(options.find(x => x.column.toString() === optionId))
+    if (optionIndex >= 0) options.splice(optionIndex, 1)
+
+    board.save()
+    res.send('OK')
+})
+
+// drag and drop task sorting
+router.patch('/:boardId/', isLoggedIn, hasWritePerms, async (req, res) => {
+    const {boardId} = req.params
+    const {result} = req.body
+    const board = await Board.findById(boardId)
+
+    const sourceTaskGroup = board.taskGroups.find(x => x._id.toString() === result.source.droppableId)
+    const sourceIndex = sourceTaskGroup.tasks.findIndex(x => x._id.toString() === result.draggableId)
+    const destinationTaskGroup = board.taskGroups.find(x => x._id.toString() === result.destination.droppableId)
+
+    const task = sourceTaskGroup.tasks.splice(sourceIndex, 1)
+    destinationTaskGroup.tasks.splice(result.destination.index, 0, task[0])
 
     board.save()
     res.send('OK')
