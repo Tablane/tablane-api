@@ -5,7 +5,9 @@ const Board = require('../models/board')
 
 router.post('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
     const { boardId } = req.params
-    const taskGroup = new TaskGroup({name: req.body.name, tasks: []})
+    const { _id } = req.body
+
+    const taskGroup = new TaskGroup({_id, name: req.body.name, tasks: []})
     const board = await Board.findById(boardId)
 
     board.taskGroups.push(taskGroup)
@@ -39,9 +41,10 @@ router.patch('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
 router.delete('/:boardId/:taskGroupId', isLoggedIn, hasWritePerms, async (req, res) => {
     const { boardId, taskGroupId } = req.params
     const board = await Board.findById(boardId)
-    const taskGroup = board.taskGroups.find(x => x._id.toString() === taskGroupId)
 
+    const taskGroup = board.taskGroups.find(x => x._id.toString() === taskGroupId)
     board.taskGroups.splice(board.taskGroups.indexOf(taskGroup), 1)
+
     await board.save()
     res.send('OK')
 })
