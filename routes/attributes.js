@@ -5,7 +5,7 @@ const mongoose = require('mongoose')
 
 router.post('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
     const {boardId} = req.params
-    const {type} = req.body
+    const {type, _id} = req.body
     const board = await Board.findById(boardId)
 
     let name = type.charAt(0).toUpperCase() + type.slice(1)
@@ -18,7 +18,7 @@ router.post('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
     let attribute = {
         name,
         type: type,
-        _id: new mongoose.Types.ObjectId()
+        _id
     }
     if (type === 'status') attribute.labels = []
     board.attributes.push(attribute)
@@ -55,10 +55,11 @@ router.patch('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
 
 router.put('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
     const {boardId} = req.params
+    const {name, labels} = req.body
     const board = await Board.findById(boardId)
 
-    board.attributes.find(x => x.name === req.body.name).labels = req.body.labels
-    board.attributes.find(x => x.name === req.body.name).labels.map(x => {
+    board.attributes.find(x => x.name === name).labels = labels
+    board.attributes.find(x => x.name === name).labels.map(x => {
         if (!x._id) return x._id = new mongoose.Types.ObjectId()
     })
     board.markModified(`attributes`)
