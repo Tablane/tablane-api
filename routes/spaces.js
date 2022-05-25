@@ -7,8 +7,9 @@ const {wrapAsync, isLoggedIn, hasReadPerms, hasWritePerms} = require("../middlew
 router.post('/:workspaceId', isLoggedIn, hasWritePerms, async (req, res) => {
     const { workspaceId } = req.params
     const workspace = await Workspace.findById(workspaceId)
-    const space = new Space({ name: req.body.name })
+    const { name, _id } = req.body
 
+    const space = new Space({ name, _id })
     workspace.spaces.push(space)
 
     await workspace.save()
