@@ -58,9 +58,11 @@ router.patch('/drag/:workspaceId', isLoggedIn, hasWritePerms, wrapAsync(async (r
 // create new board
 router.post('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, wrapAsync(async (req,res) => {
     const {workspaceId, spaceId} = req.params
+    const {_id, name} = req.body
     const workspace = await Workspace.findById(workspaceId)
     const board = new Board({
-        name: req.body.name,
+        _id,
+        name,
         workspace: workspace,
         attributes: [],
         taskGroups: [],
