@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const Workspace = require('../models/workspace')
 const Space = require('../models/space')
+const Board = require('../models/board')
 const {wrapAsync, isLoggedIn, hasReadPerms, hasWritePerms} = require("../middleware");
 
 // create new space
@@ -50,6 +51,7 @@ router.delete('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, async (req, r
     const workspace = await Workspace.findById(workspaceId)
 
     const spaceIndex = workspace.spaces.indexOf(workspace.spaces.find(x => x._id.toString() === spaceId))
+    await Board.deleteMany({ _id: { $in: workspace.spaces[spaceIndex].boards }})
     workspace.spaces.splice(spaceIndex, 1)
 
     await workspace.save()
