@@ -1,9 +1,9 @@
 const router = require('express').Router()
 const Board = require('../models/board')
-const {isLoggedIn, hasWritePerms} = require("../middleware");
+const {isLoggedIn, hasWritePerms, wrapAsync } = require("../middleware");
 const mongoose = require('mongoose')
 
-router.post('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.post('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId} = req.params
     const {type, _id} = req.body
     const board = await Board.findById(boardId)
@@ -25,9 +25,9 @@ router.post('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
 
     await board.save()
     res.send('OK')
-})
+}))
 
-router.patch('/:boardId/:attributeId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.patch('/:boardId/:attributeId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId, attributeId} = req.params
     const {name} = req.body
     const board = await Board.findById(boardId)
@@ -37,10 +37,10 @@ router.patch('/:boardId/:attributeId', isLoggedIn, hasWritePerms, async (req, re
 
     board.save()
     res.send('OK')
-})
+}))
 
 // drag and drop sorting
-router.patch('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.patch('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId} = req.params
     const {result} = req.body
 
@@ -51,9 +51,9 @@ router.patch('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
 
     board.save()
     res.send('OK')
-})
+}))
 
-router.put('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.put('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId} = req.params
     const {name, labels} = req.body
     const board = await Board.findById(boardId)
@@ -66,9 +66,9 @@ router.put('/:boardId', isLoggedIn, hasWritePerms, async (req, res) => {
 
     await board.save()
     res.send('OK')
-})
+}))
 
-router.delete('/:boardId/:attributeId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.delete('/:boardId/:attributeId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId, attributeId} = req.params
     const board = await Board.findById(boardId)
 
@@ -84,6 +84,6 @@ router.delete('/:boardId/:attributeId', isLoggedIn, hasWritePerms, async (req, r
 
     await board.save()
     res.send('OK')
-})
+}))
 
 module.exports = router

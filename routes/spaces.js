@@ -5,7 +5,7 @@ const Board = require('../models/board')
 const {wrapAsync, isLoggedIn, hasReadPerms, hasWritePerms} = require("../middleware");
 
 // create new space
-router.post('/:workspaceId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.post('/:workspaceId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const { workspaceId } = req.params
     const workspace = await Workspace.findById(workspaceId)
     const { name, _id } = req.body
@@ -15,10 +15,10 @@ router.post('/:workspaceId', isLoggedIn, hasWritePerms, async (req, res) => {
 
     await workspace.save()
     res.send('OK')
-})
+}))
 
 // drag and drop space
-router.patch('/drag/:workspaceId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.patch('/drag/:workspaceId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {workspaceId} = req.params
     const {result} = req.body
 
@@ -29,10 +29,10 @@ router.patch('/drag/:workspaceId', isLoggedIn, hasWritePerms, async (req, res) =
 
     workspace.save()
     res.send('OK')
-})
+}))
 
 // edit space name
-router.patch('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, async (req,res) => {
+router.patch('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, wrapAsync(async (req,res) => {
     const { workspaceId, spaceId } = req.params
     const {name} = req.body
 
@@ -43,10 +43,10 @@ router.patch('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, async (req,res
 
     workspace.save()
     res.send('OK')
-})
+}))
 
 // delete a space
-router.delete('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.delete('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const { workspaceId, spaceId } = req.params
     const workspace = await Workspace.findById(workspaceId)
 
@@ -56,6 +56,6 @@ router.delete('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, async (req, r
 
     await workspace.save()
     res.send('OK')
-})
+}))
 
 module.exports = router

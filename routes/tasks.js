@@ -4,7 +4,7 @@ const Task = require('../models/task')
 const Board = require('../models/board')
 
 // edit task options
-router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId, taskGroupId, taskId} = req.params
     const {column, value, type} = req.body
     const board = await Board.findById(boardId)
@@ -31,10 +31,10 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, async 
 
     board.save()
     res.send('OK')
-})
+}))
 
 // clear status label
-router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId, taskGroupId, taskId, optionId} = req.params
     const board = await Board.findById(boardId)
 
@@ -47,10 +47,10 @@ router.delete('/:boardId/:taskGroupId/:taskId/:optionId', isLoggedIn, hasWritePe
 
     board.save()
     res.send('OK')
-})
+}))
 
 // drag and drop task sorting
-router.patch('/:boardId/', isLoggedIn, hasWritePerms, async (req, res) => {
+router.patch('/:boardId/', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId} = req.params
     const {result} = req.body
     const board = await Board.findById(boardId)
@@ -64,10 +64,10 @@ router.patch('/:boardId/', isLoggedIn, hasWritePerms, async (req, res) => {
 
     board.save()
     res.send('OK')
-})
+}))
 
 // add new Task
-router.post('/:boardId/:taskGroupId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.post('/:boardId/:taskGroupId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const { boardId, taskGroupId } = req.params
     const { name, _id } = req.body
     const board = await Board.findById(boardId)
@@ -77,10 +77,10 @@ router.post('/:boardId/:taskGroupId', isLoggedIn, hasWritePerms, async (req, res
 
     await board.save()
     res.send('OK')
-})
+}))
 
 // delete a task
-router.delete('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, async (req, res) => {
+router.delete('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const { boardId, taskGroupId, taskId } = req.params
     const board = await Board.findById(boardId)
 
@@ -91,6 +91,6 @@ router.delete('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, async
 
     await board.save()
     res.send('OK')
-})
+}))
 
 module.exports = router
