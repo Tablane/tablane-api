@@ -19,6 +19,7 @@ const boardSchema = new Schema({
             tasks: [
                 {
                     name: String,
+                    description: String,
                     options: [
                         {
                             column: mongoose.Types.ObjectId,

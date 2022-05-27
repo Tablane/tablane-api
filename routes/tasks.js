@@ -13,7 +13,11 @@ router.patch('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, wrapAs
     if (type === 'name') {
         board.taskGroups
             .find(x => x._id.toString() === taskGroupId).tasks
-            .find(x => x._id.toString() === taskId).name = req.body.name
+            .find(x => x._id.toString() === taskId).name = value
+    } else if (type === 'description') {
+        board.taskGroups
+            .find(x => x._id.toString() === taskGroupId).tasks
+            .find(x => x._id.toString() === taskId).description = value
     }
 
     const options = board.taskGroups
