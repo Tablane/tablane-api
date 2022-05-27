@@ -97,4 +97,26 @@ router.delete('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, wrapA
     res.send('OK')
 }))
 
+// add new comment to Task
+router.post('/:boardId/:taskGroupId/:taskId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
+    const { boardId, taskGroupId, taskId } = req.params
+    const { text, _id } = req.body
+    const board = await Board.findById(boardId)
+
+    const comment = {
+        type: 'comment',
+        author: req.user.username,
+        timestamp: new Date().getTime(),
+        text
+    }
+
+    board.taskGroups
+        .find(x => x._id.toString() === taskGroupId).tasks
+        .find(task => task._id.toString() === taskId).history
+        .push(comment)
+
+    await board.save()
+    res.send('OK')
+}))
+
 module.exports = router

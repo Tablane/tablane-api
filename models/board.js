@@ -20,6 +20,7 @@ const boardSchema = new Schema({
                 {
                     name: String,
                     description: String,
+                    history: [],
                     options: [
                         {
                             column: mongoose.Types.ObjectId,
