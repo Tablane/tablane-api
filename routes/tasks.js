@@ -76,7 +76,19 @@ router.post('/:boardId/:taskGroupId', isLoggedIn, hasWritePerms, wrapAsync(async
     const { name, _id } = req.body
     const board = await Board.findById(boardId)
 
-    const task = new Task({_id, name, options: []})
+    const task = new Task({
+        _id,
+        name,
+        options: [],
+        history: [
+            {
+                type: 'activity',
+                author: req.user.username,
+                text: 'created this task',
+                timestamp: new Date().getTime()
+            }
+        ]
+    })
     board.taskGroups.find(x => x._id.toString() === taskGroupId).tasks.push(task)
 
     await board.save()
