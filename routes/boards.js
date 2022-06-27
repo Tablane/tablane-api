@@ -77,10 +77,11 @@ router.post('/:workspaceId/:spaceId', isLoggedIn, hasWritePerms, wrapAsync(async
 // edit board name
 router.patch('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req,res) => {
     const {boardId} = req.params
-    const {name} = req.body
+    const {name, _id} = req.body
     const board = await Board.findById(boardId)
 
-    board.name = name
+    if (name) board.name = name
+    if (_id) board.groupBy = _id
 
     board.save()
     res.send('OK')
