@@ -13,24 +13,21 @@ const boardSchema = new Schema({
     sharing: {
         type: Boolean
     },
-    taskGroups: [
+    tasks: [
         {
+            _id: mongoose.Types.ObjectId,
             name: String,
-            tasks: [
+            description: String,
+            history: [],
+            options: [
                 {
-                    name: String,
-                    description: String,
-                    history: [],
-                    options: [
-                        {
-                            column: mongoose.Types.ObjectId,
-                            value: String,
-                        }
-                    ]
+                    column: mongoose.Types.ObjectId,
+                    value: String,
                 }
             ]
         }
     ],
+    groupBy: String,
     attributes: [
         {
             type: { type: String },
