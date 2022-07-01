@@ -58,7 +58,7 @@ router.patch('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) 
     const task = board.tasks.find(x => x._id.toString() === result.draggableId)
     const column = task.options.find(option => option.column.toString() === board.groupBy)
     if (column) column.value = result.destination.droppableId
-    else task.options.push({ column: board.groupBy, value: result.destination.droppableId })
+    else if (!(board.groupBy === 'none' && board.groupBy)) task.options.push({ column: board.groupBy, value: result.destination.droppableId })
 
     board.save()
     res.send('OK')
