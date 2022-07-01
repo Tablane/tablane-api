@@ -67,7 +67,7 @@ router.patch('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) 
 // add new Task
 router.post('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const { boardId } = req.params
-    const { name, _id } = req.body
+    const { name, taskGroupId, _id } = req.body
     const board = await Board.findById(boardId)
 
     const task = new Task({
@@ -83,6 +83,14 @@ router.post('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) =
             }
         ]
     })
+
+    if (board.groupBy) {
+        task.options.push({
+            column: '628f8d4991b1fec278646596',
+            value: taskGroupId
+        })
+    }
+
     board.tasks.push(task)
 
     await board.save()
