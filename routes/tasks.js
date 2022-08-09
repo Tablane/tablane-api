@@ -52,13 +52,20 @@ router.delete('/:boardId/:taskId/:optionId', isLoggedIn, hasWritePerms, wrapAsyn
 // drag and drop task sorting
 router.patch('/:boardId', isLoggedIn, hasWritePerms, wrapAsync(async (req, res) => {
     const {boardId} = req.params
-    const {result} = req.body
+    const {result, destinationIndex, sourceIndex} = req.body
     const board = await Board.findById(boardId)
 
     const task = board.tasks.find(x => x._id.toString() === result.draggableId)
     const column = task.options.find(option => option.column.toString() === board.groupBy)
     if (column) column.value = result.destination.droppableId
-    else if (!(board.groupBy === 'none' && board.groupBy)) task.options.push({ column: board.groupBy, value: result.destination.droppableId })
+    else if (!(board.groupBy === 'none' && board.groupBy && result.destination.droppableId === 'empty')) {
+        task.options.push({ column: board.groupBy, value: result.destination.droppableId })
+    }
+
+    board.tasks.splice(sourceIndex, 1)
+
+    if (destinationIndex < 0) board.tasks.push(task)
+    else board.tasks.splice(destinationIndex, 0, task)
 
     board.save()
     res.send('OK')
