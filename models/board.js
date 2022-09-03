@@ -22,7 +22,7 @@ const boardSchema = new Schema({
             options: [
                 {
                     column: mongoose.Types.ObjectId,
-                    value: String,
+                    value: String
                 }
             ]
         }
@@ -37,7 +37,7 @@ const boardSchema = new Schema({
                 {
                     _id: mongoose.Types.ObjectId,
                     name: String,
-                    color: String,
+                    color: String
                 }
             ]
         }

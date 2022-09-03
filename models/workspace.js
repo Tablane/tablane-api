@@ -38,7 +38,9 @@ workspaceSchema.post('findOneAndDelete', async function (doc) {
     if (!doc) return
     doc.members.map(async x => {
         const user = await User.findById(x.user)
-        user.workspaces = user.workspaces.filter(x => x.toString() !== doc._id.toString())
+        user.workspaces = user.workspaces.filter(
+            x => x.toString() !== doc._id.toString()
+        )
         user.save()
     })
     doc.spaces.map(space => {

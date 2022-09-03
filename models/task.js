@@ -7,7 +7,7 @@ const taskSchema = new mongoose.Schema({
     options: [
         {
             column: mongoose.Types.ObjectId,
-            value: mongoose.Types.ObjectId,
+            value: mongoose.Types.ObjectId
         }
     ],
     history: []
