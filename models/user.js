@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
       new: [
         {
           taskId: String,
+          taskName: String,
           location: {
             space: String,
             board: String,
@@ -37,6 +38,7 @@ const userSchema = new mongoose.Schema({
       cleared: [
         {
           taskId: String,
+          taskName: String,
           location: {
             space: String,
             board: String,
