@@ -1,16 +1,14 @@
 const mongoose = require('mongoose')
 const taskSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
+    name: String,
     options: [
         {
-            column: mongoose.Types.ObjectId,
-            value: mongoose.Types.ObjectId
+            column: String,
+            value: String
         }
     ],
-    history: []
+    history: [],
+    description: String
 })
 
 module.exports = mongoose.model('Task', taskSchema)

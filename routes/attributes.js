@@ -10,7 +10,7 @@ router.post(
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { type, _id } = req.body
-        const board = await Board.findById(boardId)
+        const board = await Board.findById(boardId).populate('tasks')
 
         let name = type.charAt(0).toUpperCase() + type.slice(1)
         while (board.attributes.filter(x => x.name === name).length >= 1) {
@@ -98,7 +98,7 @@ router.delete(
     hasWritePerms,
     wrapAsync(async (req, res) => {
         const { boardId, attributeId } = req.params
-        const board = await Board.findById(boardId)
+        const board = await Board.findById(boardId).populate('tasks')
 
         const attributeIndex = board.attributes.indexOf(
             board.attributes.find(x => x._id.toString() === attributeId)
@@ -106,12 +106,11 @@ router.delete(
         if (attributeIndex > -1) board.attributes.splice(attributeIndex, 1)
         board.markModified(`attributes`)
 
-        board.taskGroups.map(taskGroup => {
-            taskGroup.tasks.map(task => {
-                task.options = task.options.filter(
-                    option => option.column.toString() !== attributeId
-                )
-            })
+        board.tasks.map(task => {
+            task.options = task.options.filter(
+                option => option.column.toString() !== attributeId
+            )
+            task.save()
         })
 
         await board.save()

@@ -15,7 +15,7 @@ router.get(
     hasReadPerms,
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
-        const board = await Board.findById(boardId)
+        const board = await Board.findById(boardId).populate('tasks')
 
         res.json(board)
     })
@@ -26,7 +26,7 @@ router.get(
     '/share/:boardId',
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
-        let board = await Board.findById(boardId)
+        let board = await Board.findById(boardId).populate('tasks')
 
         if (!board.sharing) return res.status(403).send('Forbidden')
         res.json({

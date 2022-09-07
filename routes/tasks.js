@@ -15,21 +15,19 @@ router.patch(
     isLoggedIn,
     hasWritePerms,
     wrapAsync(async (req, res) => {
-        const { boardId, taskGroupId, taskId } = req.params
+        const { boardId, taskId } = req.params
         const { column, value, type } = req.body
-        const board = await Board.findById(boardId)
+        const board = await Board.findById(boardId).populate('tasks')
+        const task = board.tasks.find(x => x._id.toString() === taskId)
 
         // edit name
         if (type === 'name') {
-            board.tasks.find(x => x._id.toString() === taskId).name = value
+            task.name = value
         } else if (type === 'description') {
-            board.tasks.find(x => x._id.toString() === taskId).description =
-                value
+            task.description = value
         }
 
-        const options = board.tasks.find(
-            x => x._id.toString() === taskId
-        ).options
+        const options = task.options
         const option = options.find(x => x.column.toString() === column)
 
         if (type === 'status') {
@@ -40,7 +38,7 @@ router.patch(
             else options.push({ column, value })
         }
 
-        board.save()
+        await task.save()
         res.send('OK')
     })
 )
@@ -52,18 +50,16 @@ router.delete(
     hasWritePerms,
     wrapAsync(async (req, res) => {
         const { boardId, taskId, optionId } = req.params
-        const board = await Board.findById(boardId)
+        const board = await Board.findById(boardId).populate('tasks')
+        const task = board.tasks.find(x => x._id.toString() === taskId)
 
-        const options = board.tasks.find(
-            x => x._id.toString() === taskId
-        ).options
-
+        const options = task.options
         const optionIndex = options.indexOf(
             options.find(x => x.column.toString() === optionId)
         )
         if (optionIndex >= 0) options.splice(optionIndex, 1)
 
-        board.save()
+        await task.save()
         res.send('OK')
     })
 )
@@ -76,11 +72,11 @@ router.patch(
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { result, destinationIndex, sourceIndex } = req.body
-        const board = await Board.findById(boardId)
-
+        const board = await Board.findById(boardId).populate('tasks')
         const task = board.tasks.find(
             x => x._id.toString() === result.draggableId
         )
+
         const column = task.options.find(
             option => option.column.toString() === board.groupBy
         )
@@ -103,7 +99,8 @@ router.patch(
         if (destinationIndex < 0) board.tasks.push(task)
         else board.tasks.splice(destinationIndex, 0, task)
 
-        board.save()
+        await task.save()
+        await board.save()
         res.send('OK')
     })
 )
@@ -116,7 +113,7 @@ router.post(
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { name, taskGroupId, _id } = req.body
-        const board = await Board.findById(boardId)
+        const board = await Board.findById(boardId).populate('tasks')
 
         const task = new Task({
             _id,
@@ -134,13 +131,14 @@ router.post(
 
         if (board.groupBy) {
             task.options.push({
-                column: '628f8d4991b1fec278646596',
+                column: board.groupBy,
                 value: taskGroupId
             })
         }
 
         board.tasks.push(task)
 
+        await task.save()
         await board.save()
         res.send('OK')
     })
@@ -153,13 +151,14 @@ router.delete(
     hasWritePerms,
     wrapAsync(async (req, res) => {
         const { boardId, taskId } = req.params
-        const board = await Board.findById(boardId)
+        const board = await Board.findById(boardId).populate('tasks')
 
         const task = board.tasks.find(x => x._id.toString() === taskId)
         const taskIndex = board.tasks.indexOf(task)
         board.tasks.splice(taskIndex, 1)
 
         await board.save()
+        await Task.findByIdAndDelete(taskId)
         res.send('OK')
     })
 )
@@ -172,7 +171,8 @@ router.post(
     wrapAsync(async (req, res) => {
         const { boardId, taskId } = req.params
         const { text } = req.body
-        const board = await Board.findById(boardId)
+        const board = await Board.findById(boardId).populate('tasks')
+        const task = board.tasks.find(task => task._id.toString() === taskId)
 
         const comment = {
             type: 'comment',
@@ -181,10 +181,9 @@ router.post(
             text
         }
 
-        board.tasks
-            .find(task => task._id.toString() === taskId)
-            .history.push(comment)
+        task.history.push(comment)
 
+        await task.save()
         await board.save()
         res.send('OK')
     })
