@@ -12,6 +12,10 @@ const boardSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Workspace'
     },
+    space: {
+        type: Schema.Types.ObjectId,
+        ref: 'Space'
+    },
     sharing: {
         type: Boolean
     },

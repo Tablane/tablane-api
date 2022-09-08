@@ -23,13 +23,8 @@ const workspaceSchema = new mongoose.Schema({
     ],
     spaces: [
         {
-            name: String,
-            boards: [
-                {
-                    type: Schema.Types.ObjectId,
-                    ref: 'Board'
-                }
-            ]
+            type: Schema.Types.ObjectId,
+            ref: 'Space'
         }
     ]
 })

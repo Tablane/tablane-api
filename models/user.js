@@ -21,33 +21,20 @@ const userSchema = new mongoose.Schema({
         required: true,
         match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/
     },
-    notifications: [
-        {
-            workspaceId: Number,
-            new: [
-                {
-                    taskId: String,
-                    taskName: String,
-                    location: {
-                        space: String,
-                        board: String
-                    },
-                    changes: []
-                }
-            ],
-            cleared: [
-                {
-                    taskId: String,
-                    taskName: String,
-                    location: {
-                        space: String,
-                        board: String
-                    },
-                    changes: []
-                }
-            ]
-        }
-    ]
+    notifications: {
+        new: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Notification'
+            }
+        ],
+        cleared: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Notification'
+            }
+        ]
+    }
 })
 
 module.exports = mongoose.model('User', userSchema)

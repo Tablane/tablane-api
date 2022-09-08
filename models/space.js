@@ -11,7 +11,11 @@ const spaceSchema = new mongoose.Schema({
             type: Schema.Types.ObjectId,
             ref: 'Board'
         }
-    ]
+    ],
+    workspace: {
+        type: Schema.Types.ObjectId,
+        ref: 'Workspace'
+    }
 })
 
 module.exports = mongoose.model('Space', spaceSchema)

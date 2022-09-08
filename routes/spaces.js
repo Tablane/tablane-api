@@ -22,6 +22,7 @@ router.post(
         const space = new Space({ name, _id })
         workspace.spaces.push(space)
 
+        await space.save()
         await workspace.save()
         res.send('OK')
     })

@@ -32,8 +32,7 @@ module.exports = function (passport) {
             const userInformation = {
                 username: user.username,
                 workspaces: user.workspaces,
-                _id: user._id,
-                notifications: user.notifications
+                _id: user._id
             }
             cb(err, userInformation)
         }).populate({

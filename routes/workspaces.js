@@ -58,9 +58,14 @@ router.get(
         const { workspaceId } = req.params
         let workspace = await Workspace.findOne({ id: workspaceId })
             .populate({
-                path: 'spaces.boards',
-                model: 'Board',
-                select: 'name'
+                path: 'spaces',
+                model: 'Space',
+                select: ['name', 'boards'],
+                populate: {
+                    path: 'boards',
+                    model: 'Board',
+                    select: 'name'
+                }
             })
             .populate({
                 path: 'members.user',

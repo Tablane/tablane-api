@@ -13,6 +13,7 @@ const spaces = require('./routes/spaces')
 const boards = require('./routes/boards')
 const tasks = require('./routes/tasks')
 const attributes = require('./routes/attributes')
+const notification = require('./routes/notifications')
 const MongoDBStore = require('connect-mongodb-session')(session)
 
 dotenv.config()
@@ -65,6 +66,7 @@ app.use('/api/space', spaces)
 app.use('/api/board', boards)
 app.use('/api/task', tasks)
 app.use('/api/attribute', attributes)
+app.use('/api/notification', notification)
 
 app.listen(process.env.PORT || 3001, () => {
     console.log(`Listening on port ${process.env.PORT || 3001}`)
