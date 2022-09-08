@@ -10,7 +10,7 @@ router.post(
         const { condition } = req.body
         const notifications = await Notification.find({
             workspace: workspaceId,
-            user: req.user._id,
+            notificationOwner: req.user._id,
             ...condition
         })
             .sort({ $natural: -1 })
@@ -74,7 +74,7 @@ router.delete(
             ...condition,
             workspace: workspaceId,
             task: taskId,
-            user: req.user._id
+            notificationOwner: req.user._id
         })
 
         notifications.map(notification => {
@@ -97,7 +97,7 @@ router.patch(
             ...condition,
             workspace: workspaceId,
             task: taskId,
-            user: req.user._id
+            notificationOwner: req.user._id
         })
 
         notifications.map(notification => {

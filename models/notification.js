@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
+    notificationOwner: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+    },
     from: {
         text: String,
         color: String
