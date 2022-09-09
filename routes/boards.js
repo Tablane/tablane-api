@@ -15,7 +15,13 @@ router.get(
     hasReadPerms,
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
-        const board = await Board.findById(boardId).populate('tasks')
+        const board = await Board.findById(boardId).populate({
+            path: 'tasks',
+            populate: {
+                path: 'watcher',
+                select: 'username'
+            }
+        })
 
         res.json(board)
     })

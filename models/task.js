@@ -14,7 +14,13 @@ const taskSchema = new mongoose.Schema({
     board: {
         type: Schema.Types.ObjectId,
         ref: 'Board'
-    }
+    },
+    watcher: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ]
 })
 
 module.exports = mongoose.model('Task', taskSchema)

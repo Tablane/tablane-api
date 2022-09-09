@@ -9,6 +9,38 @@ const {
 const Task = require('../models/task')
 const Board = require('../models/board')
 
+// add new watcher to task
+router.post(
+    '/watcher/:taskId',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        const { taskId } = req.params
+        const { user } = req.body
+        const task = await Task.findById(taskId)
+
+        task.watcher.addToSet(user)
+
+        await task.save()
+        res.send('OK')
+    })
+)
+
+// add new watcher to task
+router.delete(
+    '/watcher/:taskId',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        const { taskId } = req.params
+        const { user } = req.body
+        const task = await Task.findById(taskId)
+
+        task.watcher.remove(user)
+
+        await task.save()
+        res.send('OK')
+    })
+)
+
 // edit task options
 router.patch(
     '/:boardId/:taskId',
