@@ -68,6 +68,11 @@ app.use('/api/task', tasks)
 app.use('/api/attribute', attributes)
 app.use('/api/notification', notification)
 
+app.use(function (err, req, res, next) {
+    const { status = 500, message = 'Internal Server Error' } = err
+    res.status(status).json({ message })
+})
+
 app.listen(process.env.PORT || 3001, () => {
     console.log(`Listening on port ${process.env.PORT || 3001}`)
 })

@@ -3,6 +3,7 @@ const Board = require('../models/board')
 const { isLoggedIn, hasWritePerms, wrapAsync } = require('../middleware')
 const mongoose = require('mongoose')
 
+// create new attribute
 router.post(
     '/:boardId',
     isLoggedIn,
@@ -34,6 +35,7 @@ router.post(
     })
 )
 
+// rename attribute
 router.patch(
     '/:boardId/:attributeId',
     isLoggedIn,
@@ -44,7 +46,6 @@ router.patch(
         const board = await Board.findById(boardId)
 
         board.attributes.find(x => x._id.toString() === attributeId).name = name
-        board.markModified(`attributes`)
 
         board.save()
         res.send('OK')
@@ -70,6 +71,7 @@ router.patch(
     })
 )
 
+// changing status labels
 router.put(
     '/:boardId',
     isLoggedIn,
@@ -85,13 +87,13 @@ router.put(
             .labels.map(x => {
                 if (!x._id) return (x._id = new mongoose.Types.ObjectId())
             })
-        board.markModified(`attributes`)
 
         await board.save()
         res.send('OK')
     })
 )
 
+// delete attribute
 router.delete(
     '/:boardId/:attributeId',
     isLoggedIn,
@@ -104,7 +106,6 @@ router.delete(
             board.attributes.find(x => x._id.toString() === attributeId)
         )
         if (attributeIndex > -1) board.attributes.splice(attributeIndex, 1)
-        board.markModified(`attributes`)
 
         board.tasks.map(task => {
             task.options = task.options.filter(
