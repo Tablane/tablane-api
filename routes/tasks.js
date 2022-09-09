@@ -15,10 +15,10 @@ router.post(
     isLoggedIn,
     wrapAsync(async (req, res) => {
         const { taskId } = req.params
-        const { user } = req.body
+        const { userId } = req.body
         const task = await Task.findById(taskId)
 
-        task.watcher.addToSet(user)
+        task.watcher.addToSet(userId)
 
         await task.save()
         res.send('OK')
@@ -31,10 +31,10 @@ router.delete(
     isLoggedIn,
     wrapAsync(async (req, res) => {
         const { taskId } = req.params
-        const { user } = req.body
+        const { userId } = req.body
         const task = await Task.findById(taskId)
 
-        task.watcher.remove(user)
+        task.watcher.remove(userId)
 
         await task.save()
         res.send('OK')
