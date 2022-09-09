@@ -24,7 +24,7 @@ router.post(
 
         let attribute = {
             name,
-            type: type,
+            type,
             _id
         }
         if (type === 'status') attribute.labels = []

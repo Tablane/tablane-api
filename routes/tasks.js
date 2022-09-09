@@ -68,6 +68,9 @@ router.patch(
         } else if (type === 'text') {
             if (option) option.value = value
             else options.push({ column, value })
+        } else if (type === 'person') {
+            if (option) option.value = value
+            else options.push({ column, value })
         }
 
         await task.save()

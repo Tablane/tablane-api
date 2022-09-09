@@ -6,7 +6,7 @@ const taskSchema = new mongoose.Schema({
     options: [
         {
             column: String,
-            value: String
+            value: Schema.Types.Mixed
         }
     ],
     history: [],
