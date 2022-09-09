@@ -96,7 +96,11 @@ router.post(
     wrapAsync(async (req, res) => {
         const { workspaceId, spaceId } = req.params
         const { _id, name } = req.body
-        const workspace = await Workspace.findById(workspaceId)
+        const workspace = await Workspace.findById(workspaceId).populate(
+            'spaces'
+        )
+        const space = workspace.spaces.find(x => x._id.toString() === spaceId)
+
         const board = new Board({
             _id,
             name,
@@ -105,10 +109,9 @@ router.post(
             taskGroups: [],
             sharing: false
         })
-        workspace.spaces
-            .find(x => x._id.toString() === spaceId)
-            .boards.push(board)
-        await workspace.save()
+        space.boards.push(board)
+
+        await space.save()
         await board.save()
         res.send('OK')
     })
