@@ -116,14 +116,7 @@ router.patch(
             option => option.column.toString() === board.groupBy
         )
         if (column) column.value = result.destination.droppableId
-        else if (
-            !(
-                board.groupBy === 'none' ||
-                !board.groupBy ||
-                result.destination.droppableId === 'empty'
-            )
-        ) {
-            console.log('adding weird option')
+        else if (result.destination.droppableId !== 'empty') {
             task.options.push({
                 column: board.groupBy,
                 value: result.destination.droppableId
