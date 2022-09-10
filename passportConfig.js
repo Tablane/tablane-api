@@ -16,11 +16,29 @@ module.exports = function (passport) {
                         return done(null, false)
                     }
                 })
-            }).populate({
-                path: 'workspaces',
-                model: 'Workspace',
-                select: ['id', 'name']
             })
+                .populate({
+                    path: 'workspaces',
+                    select: ['id', 'name']
+                })
+                .populate({
+                    path: 'assignedTasks',
+                    select: ['name', 'options', 'workspace', 'board'],
+                    populate: [
+                        {
+                            path: 'workspace',
+                            select: ['_id']
+                        },
+                        {
+                            path: 'board',
+                            select: ['space', 'name'],
+                            populate: {
+                                path: 'space',
+                                select: 'name'
+                            }
+                        }
+                    ]
+                })
         })
     )
 
