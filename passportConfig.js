@@ -43,11 +43,21 @@ module.exports = function (passport) {
             })
             .populate({
                 path: 'assignedTasks',
-                select: ['name', 'options', 'workspace'],
-                populate: {
-                    path: 'workspace',
-                    select: ['_id']
-                }
+                select: ['name', 'options', 'workspace', 'board'],
+                populate: [
+                    {
+                        path: 'workspace',
+                        select: ['_id']
+                    },
+                    {
+                        path: 'board',
+                        select: ['space', 'name'],
+                        populate: {
+                            path: 'space',
+                            select: 'name'
+                        }
+                    }
+                ]
             })
     })
 }
