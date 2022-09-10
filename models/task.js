@@ -15,6 +15,10 @@ const taskSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'Board'
     },
+    workspace: {
+        type: Schema.Types.ObjectId,
+        ref: 'Workspace'
+    },
     watcher: [
         {
             type: Schema.Types.ObjectId,

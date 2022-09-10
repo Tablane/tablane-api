@@ -32,13 +32,22 @@ module.exports = function (passport) {
             const userInformation = {
                 username: user.username,
                 workspaces: user.workspaces,
-                _id: user._id
+                _id: user._id,
+                assignedTasks: user.assignedTasks
             }
             cb(err, userInformation)
-        }).populate({
-            path: 'workspaces',
-            model: 'Workspace',
-            select: ['id', 'name']
         })
+            .populate({
+                path: 'workspaces',
+                select: ['id', 'name']
+            })
+            .populate({
+                path: 'assignedTasks',
+                select: ['name', 'options', 'workspace'],
+                populate: {
+                    path: 'workspace',
+                    select: ['_id']
+                }
+            })
     })
 }
