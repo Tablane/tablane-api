@@ -51,7 +51,8 @@ module.exports = function (passport) {
                 username: user.username,
                 workspaces: user.workspaces,
                 _id: user._id,
-                assignedTasks: user.assignedTasks
+                assignedTasks: user.assignedTasks,
+                newNotifications: user.newNotifications
             }
             cb(err, userInformation)
         })
