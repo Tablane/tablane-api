@@ -123,10 +123,10 @@ router.patch(
             })
         }
 
-        board.tasks.splice(sourceIndex, 1)
+        const [deletedTask] = board.tasks.splice(sourceIndex, 1)
 
-        if (destinationIndex < 0) board.tasks.push(task)
-        else board.tasks.splice(destinationIndex, 0, task)
+        if (destinationIndex < 0) board.tasks.push(deletedTask)
+        else board.tasks.splice(destinationIndex, 0, deletedTask)
 
         await task.save()
         await board.save()
