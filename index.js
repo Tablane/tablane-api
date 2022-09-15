@@ -15,6 +15,12 @@ const tasks = require('./routes/tasks')
 const attributes = require('./routes/attributes')
 const notification = require('./routes/notifications')
 const MongoDBStore = require('connect-mongodb-session')(session)
+const http = require('http').createServer(app)
+const { Server } = require('socket.io')
+const { isLoggedIn, hasWritePerms, wrapAsync } = require('./middleware')
+const Board = require('./models/board')
+const Task = require('./models/task')
+const io = new Server(http)
 
 dotenv.config()
 mongoose.connect(
@@ -68,11 +74,17 @@ app.use('/api/task', tasks)
 app.use('/api/attribute', attributes)
 app.use('/api/notification', notification)
 
+app.get('/socket/:message', async (req, res) => {
+    const { message } = req.params
+    io.emit('endpoint', message)
+    res.send('OK')
+})
+
 app.use(function (err, req, res, next) {
     const { status = 500, message = 'Internal Server Error' } = err
     res.status(status).json({ message })
 })
 
-app.listen(process.env.PORT || 3001, () => {
+http.listen(process.env.PORT || 3001, () => {
     console.log(`Listening on port ${process.env.PORT || 3001}`)
 })
