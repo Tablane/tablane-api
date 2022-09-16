@@ -86,7 +86,7 @@ router.get(
     '/',
     wrapAsync(async (req, res) => {
         if (!req.user)
-            return res.status(401).json({
+            return res.status(200).json({
                 success: false,
                 error: 'Unauthorized'
             })
