@@ -124,14 +124,14 @@ router.patch(
     hasWritePerms,
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
-        const { name, _id } = req.body
+        const { name, groupBy } = req.body
         const board = await Board.findById(boardId)
 
         if (name) board.name = name
-        if (_id) board.groupBy = _id
+        if (groupBy) board.groupBy = groupBy
 
         board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 

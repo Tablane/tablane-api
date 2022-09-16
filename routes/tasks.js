@@ -169,7 +169,7 @@ router.post(
 
         await task.save()
         await board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
