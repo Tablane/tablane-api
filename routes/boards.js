@@ -56,10 +56,7 @@ router.patch(
         board.sharing = share
 
         board.save()
-        res.json({
-            status: 'OK',
-            boardId
-        })
+        res.json({ success: true, message: boardId })
     })
 )
 
@@ -84,7 +81,7 @@ router.patch(
         destination.boards.splice(result.destination.index, 0, board)
 
         workspace.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -113,7 +110,7 @@ router.post(
 
         await space.save()
         await board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -150,7 +147,7 @@ router.delete(
             .boards.remove(boardId)
 
         await workspace.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 

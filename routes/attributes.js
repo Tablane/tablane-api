@@ -31,7 +31,7 @@ router.post(
         board.attributes.push(attribute)
 
         await board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -48,7 +48,7 @@ router.patch(
         board.attributes.find(x => x._id.toString() === attributeId).name = name
 
         board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -67,7 +67,7 @@ router.patch(
         board.attributes.splice(result.destination.index, 0, attribute)
 
         board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -89,7 +89,7 @@ router.put(
             })
 
         await board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -115,7 +115,7 @@ router.delete(
         })
 
         await board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 

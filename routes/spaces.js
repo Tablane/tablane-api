@@ -24,7 +24,7 @@ router.post(
 
         await space.save()
         await workspace.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -43,7 +43,7 @@ router.patch(
         workspace.spaces.splice(result.destination.index, 0, space)
 
         workspace.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -62,7 +62,7 @@ router.patch(
         space.name = name
 
         workspace.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -84,7 +84,7 @@ router.delete(
         workspace.spaces.splice(spaceIndex, 1)
 
         await workspace.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
