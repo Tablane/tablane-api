@@ -96,7 +96,7 @@ router.patch(
         workspace.name = name
         workspace.save()
 
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -110,7 +110,7 @@ router.delete(
 
         await Workspace.findByIdAndDelete(workspaceId)
 
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -138,7 +138,7 @@ router.post(
 
         user.save()
         workspace.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -173,7 +173,7 @@ router.delete(
 
         user.save()
         workspace.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -194,7 +194,7 @@ router.patch(
             role.toLowerCase()
 
         workspace.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 

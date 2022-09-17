@@ -21,7 +21,7 @@ router.post(
         task.watcher.addToSet(userId)
 
         await task.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -37,7 +37,7 @@ router.delete(
         task.watcher.remove(userId)
 
         await task.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -74,7 +74,7 @@ router.patch(
         }
 
         await task.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -95,7 +95,7 @@ router.delete(
         if (optionIndex >= 0) options.splice(optionIndex, 1)
 
         await task.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -130,7 +130,7 @@ router.patch(
 
         await task.save()
         await board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -188,7 +188,7 @@ router.delete(
 
         await board.save()
         await Task.findByIdAndDelete(taskId)
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -214,7 +214,7 @@ router.post(
 
         await task.save()
         await board.save()
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 

@@ -59,7 +59,7 @@ router.post(
         })
 
         await notification.save()
-        res.send('ok')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -82,7 +82,7 @@ router.delete(
             notification.save()
         })
 
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -105,7 +105,7 @@ router.patch(
             notification.save()
         })
 
-        res.send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 

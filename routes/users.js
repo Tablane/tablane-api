@@ -78,7 +78,7 @@ router.get(
     '/logout',
     wrapAsync(async (req, res) => {
         req.logout()
-        res.status(200).send('OK')
+        res.json({ success: true, message: 'OK' })
     })
 )
 

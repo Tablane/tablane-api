@@ -77,7 +77,7 @@ app.use('/api/notification', notification)
 app.get('/socket/:message', async (req, res) => {
     const { message } = req.params
     io.emit('endpoint', message)
-    res.send('OK')
+    res.json({ success: true, message: 'OK' })
 })
 
 app.use(function (err, req, res, next) {
