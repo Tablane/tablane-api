@@ -9,7 +9,11 @@ router.post(
     wrapAsync(async (req, res, next) => {
         passport.authenticate('local', (err, user, info) => {
             if (err) throw err
-            if (!user) res.status(403).send('Forbidden')
+            if (!user)
+                res.status(403).send({
+                    success: false,
+                    message: 'Username or password is wrong'
+                })
             else {
                 req.logIn(user, err => {
                     if (err) throw err
@@ -23,16 +27,21 @@ router.post(
 router.post(
     '/register',
     wrapAsync(async (req, res, next) => {
-        Users.findOne({ username: req.body.username }, async (err, doc) => {
+        const { username, email, password } = req.body
+        Users.findOne({ username: username }, async (err, doc) => {
             if (err) throw err
-            if (doc) res.status(409).send('User Already Exists')
+            if (doc)
+                res.json({
+                    success: false,
+                    error: ['User Already Exists.']
+                })
             if (!doc) {
-                bcrypt.hash(req.body.password, 12, async function (err, hash) {
+                bcrypt.hash(password, 12, async function (err, hash) {
                     const newUser = new Users({
-                        username: req.body.username,
+                        username,
                         password: hash,
                         workspaces: [],
-                        email: req.body.email
+                        email
                     })
                     await newUser
                         .save()
