@@ -56,12 +56,15 @@ router.patch(
         const { workspaceId, spaceId } = req.params
         const { name } = req.body
 
-        const workspace = await Workspace.findById(workspaceId)
+        const workspace = await Workspace.findById(workspaceId).populate({
+            path: 'spaces',
+            select: 'name'
+        })
         const space = workspace.spaces.find(x => x._id.toString() === spaceId)
 
         space.name = name
 
-        workspace.save()
+        space.save()
         res.json({ success: true, message: 'OK' })
     })
 )
