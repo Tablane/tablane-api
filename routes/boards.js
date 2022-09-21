@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const Board = require('../models/board')
 const Workspace = require('../models/workspace')
+const Space = require('../models/space')
 const {
     wrapAsync,
     isLoggedIn,
@@ -139,14 +140,12 @@ router.delete(
     hasWritePerms,
     wrapAsync(async (req, res) => {
         const { workspaceId, spaceId, boardId } = req.params
-        const workspace = await Workspace.findById(workspaceId)
+        const space = await Space.findById(spaceId)
         await Board.findByIdAndDelete(boardId)
 
-        workspace.spaces
-            .find(x => x._id.toString() === spaceId)
-            .boards.remove(boardId)
+        space.boards.remove(boardId)
 
-        await workspace.save()
+        await space.save()
         res.json({ success: true, message: 'OK' })
     })
 )
