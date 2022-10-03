@@ -7,6 +7,7 @@ const {
     hasWritePerms
 } = require('../middleware')
 const Task = require('../models/task')
+const User = require('../models/user')
 const Board = require('../models/board')
 
 // add new watcher to task
@@ -17,15 +18,25 @@ router.post(
         const { taskId } = req.params
         const { userId } = req.body
         const task = await Task.findById(taskId)
+        const user = await User.findById(userId)
 
         task.watcher.addToSet(userId)
+
+        const io = req.app.get('socketio')
+        io.to(task.board.toString())
+            .except(req.user._id.toString())
+            .emit(task.board, {
+                event: 'addWatcher',
+                id: task.board,
+                body: { task, user: { username: user.username, _id: user._id } }
+            })
 
         await task.save()
         res.json({ success: true, message: 'OK' })
     })
 )
 
-// add new watcher to task
+// remove watcher from task
 router.delete(
     '/watcher/:taskId',
     isLoggedIn,
@@ -33,8 +44,18 @@ router.delete(
         const { taskId } = req.params
         const { userId } = req.body
         const task = await Task.findById(taskId)
+        const user = await User.findById(userId)
 
         task.watcher.remove(userId)
+
+        const io = req.app.get('socketio')
+        io.to(task.board.toString())
+            .except(req.user._id.toString())
+            .emit(task.board, {
+                event: 'removeWatcher',
+                id: task.board,
+                body: { task, user: { username: user.username, _id: user._id } }
+            })
 
         await task.save()
         res.json({ success: true, message: 'OK' })
@@ -73,6 +94,13 @@ router.patch(
             else options.push({ column, value })
         }
 
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'editOptionsTask',
+            id: boardId,
+            body: { column, value, type, taskId }
+        })
+
         await task.save()
         res.json({ success: true, message: 'OK' })
     })
@@ -93,6 +121,13 @@ router.delete(
             options.find(x => x.column.toString() === optionId)
         )
         if (optionIndex >= 0) options.splice(optionIndex, 1)
+
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'clearStatusTask',
+            id: boardId,
+            body: { taskId, optionId }
+        })
 
         await task.save()
         res.json({ success: true, message: 'OK' })
@@ -127,6 +162,13 @@ router.patch(
 
         if (destinationIndex < 0) board.tasks.push(deletedTask)
         else board.tasks.splice(destinationIndex, 0, deletedTask)
+
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'sortTask',
+            id: boardId,
+            body: { result, destinationIndex, sourceIndex }
+        })
 
         await task.save()
         await board.save()
@@ -167,6 +209,20 @@ router.post(
 
         board.tasks.push(task)
 
+        const io = req.app.get('socketio')
+        io.to(boardId)
+            .except(req.user._id.toString())
+            .emit(boardId, {
+                event: 'addTask',
+                id: boardId,
+                body: {
+                    newTaskName: name,
+                    taskGroupId,
+                    _id,
+                    author: req.user.username
+                }
+            })
+
         await task.save()
         await board.save()
         res.json({ success: true, message: 'OK' })
@@ -185,6 +241,13 @@ router.delete(
         const task = board.tasks.find(x => x._id.toString() === taskId)
         const taskIndex = board.tasks.indexOf(task)
         board.tasks.splice(taskIndex, 1)
+
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'deleteTask',
+            id: boardId,
+            body: { taskId }
+        })
 
         await board.save()
         await Task.findByIdAndDelete(taskId)
@@ -211,6 +274,15 @@ router.post(
         }
 
         task.history.push(comment)
+
+        const io = req.app.get('socketio')
+        io.to(boardId)
+            .except(req.user._id.toString())
+            .emit(boardId, {
+                event: 'addTaskComment',
+                id: boardId,
+                body: { text, author: req.user.username, taskId }
+            })
 
         await task.save()
         await board.save()
