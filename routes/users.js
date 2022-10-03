@@ -86,6 +86,14 @@ router.post(
 router.get(
     '/logout',
     wrapAsync(async (req, res) => {
+        const sessionId = req.session.id
+        const io = req.app.get('socketio')
+
+        req.session.destroy(() => {
+            io.to(sessionId).disconnectSockets()
+            res.status(204).end()
+        })
+
         req.logout()
         res.json({ success: true, message: 'OK' })
     })

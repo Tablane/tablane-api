@@ -56,7 +56,16 @@ router.patch(
         const board = await Board.findById(boardId)
         board.sharing = share
 
-        board.save()
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'setSharing',
+            id: boardId,
+            body: {
+                share
+            }
+        })
+
+        await board.save()
         res.json({ success: true, message: boardId })
     })
 )
@@ -81,7 +90,7 @@ router.patch(
         const [board] = source.boards.splice(result.source.index, 1)
         destination.boards.splice(result.destination.index, 0, board)
 
-        workspace.save()
+        await workspace.save()
         res.json({ success: true, message: 'OK' })
     })
 )
@@ -126,9 +135,18 @@ router.patch(
         const board = await Board.findById(boardId)
 
         if (name) board.name = name
-        if (groupBy) board.groupBy = groupBy
+        if (groupBy) {
+            board.groupBy = groupBy
 
-        board.save()
+            const io = req.app.get('socketio')
+            io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+                event: 'setGroupBy',
+                id: boardId,
+                body: { groupBy }
+            })
+        }
+
+        await board.save()
         res.json({ success: true, message: 'OK' })
     })
 )

@@ -30,6 +30,13 @@ router.post(
         if (type === 'status') attribute.labels = []
         board.attributes.push(attribute)
 
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'addAttribute',
+            id: boardId,
+            body: { type, _id }
+        })
+
         await board.save()
         res.json({ success: true, message: 'OK' })
     })
@@ -47,7 +54,14 @@ router.patch(
 
         board.attributes.find(x => x._id.toString() === attributeId).name = name
 
-        board.save()
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'editAttributeName',
+            id: boardId,
+            body: { name, attributeId }
+        })
+
+        await board.save()
         res.json({ success: true, message: 'OK' })
     })
 )
@@ -66,7 +80,14 @@ router.patch(
         const [attribute] = board.attributes.splice(result.source.index, 1)
         board.attributes.splice(result.destination.index, 0, attribute)
 
-        board.save()
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'sortAttribute',
+            id: boardId,
+            body: { result }
+        })
+
+        await board.save()
         res.json({ success: true, message: 'OK' })
     })
 )
@@ -87,6 +108,13 @@ router.put(
             .labels.map(x => {
                 if (!x._id) return (x._id = new mongoose.Types.ObjectId())
             })
+
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'editAttributeLabels',
+            id: boardId,
+            body: { name, labels }
+        })
 
         await board.save()
         res.json({ success: true, message: 'OK' })
@@ -112,6 +140,13 @@ router.delete(
                 option => option.column.toString() !== attributeId
             )
             task.save()
+        })
+
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'deleteAttribute',
+            id: boardId,
+            body: { attributeId }
         })
 
         await board.save()
