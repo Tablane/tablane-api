@@ -20,7 +20,6 @@ const { Server } = require('socket.io')
 const { isLoggedIn, hasWritePerms, wrapAsync } = require('./middleware')
 const Board = require('./models/board')
 const Task = require('./models/task')
-const io = new Server(http)
 
 dotenv.config()
 mongoose.connect(
@@ -32,6 +31,12 @@ mongoose.connect(
     },
     () => console.log('connected to database')
 )
+
+const corsOptions = {
+    origin: [process.env.FRONTEND_HOST],
+    credentials: true
+}
+const io = new Server(http, { cors: corsOptions })
 
 // middleware
 app.use(bodyParser.json())
@@ -53,18 +58,14 @@ app.use(
         }
     })
 )
+app.set('socketio', io)
 app.set('trust proxy', 1)
 app.use(cookieParser(process.env.COOKIE_SECRET))
 app.use(passport.initialize())
 app.use(passport.session())
 require('./passportConfig')(passport)
 
-app.use(
-    cors({
-        origin: [process.env.FRONTEND_HOST],
-        credentials: true
-    })
-)
+app.use(cors(corsOptions))
 
 app.use('/api/user', users)
 app.use('/api/workspace', workspaces)
@@ -74,13 +75,20 @@ app.use('/api/task', tasks)
 app.use('/api/attribute', attributes)
 app.use('/api/notification', notification)
 
-app.get('/socket/:message', async (req, res) => {
-    const { message } = req.params
-    io.emit('endpoint', message)
-    res.json({ success: true, message: 'OK' })
+io.on('connect', socket => {
+    console.log(`${socket.id} connected`)
+
+    socket.on('subscribe', room => {
+        socket.join(room.body)
+        socket.emit('message', 'successfully joined room')
+    })
+    socket.on('unsubscribe', room => {
+        socket.leave(room.body)
+        socket.emit('message', 'successfully left room')
+    })
 })
 
-app.use(function (err, req, res, next) {
+app.use((err, req, res, next) => {
     const { status = 500, message = 'Internal Server Error' } = err
     res.status(status).json({ message })
 })
