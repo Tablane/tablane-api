@@ -125,9 +125,16 @@ router.post(
         const workspace = await Workspace.findById(workspaceId)
         const user = await User.findOne({ email })
 
-        if (!user) return res.status(422).json({ error: 'User does not exist' })
+        if (!user)
+            return res.status(400).json({
+                success: false,
+                message: 'User does not exist'
+            })
         if (user.workspaces.includes(workspaceId))
-            return res.status(409).json({ error: 'User already invited' })
+            return res.status(400).json({
+                success: false,
+                message: 'User already invited'
+            })
 
         workspace.members.push({
             user: user,
@@ -136,8 +143,8 @@ router.post(
         })
         user.workspaces.push(workspace)
 
-        user.save()
-        workspace.save()
+        await user.save()
+        await workspace.save()
         res.json({ success: true, message: 'OK' })
     })
 )
@@ -152,7 +159,11 @@ router.delete(
         const workspace = await Workspace.findById(workspaceId)
         const user = await User.findById(userId)
 
-        if (!user) return res.status(422).json({ error: 'User does not exist' })
+        if (!user)
+            return res.status(422).json({
+                success: false,
+                message: 'User does not exist'
+            })
 
         const memberIndex = workspace.members.findIndex(
             x => x.user._id.toString() === userId
@@ -162,7 +173,10 @@ router.delete(
         )
 
         if (workspace.members[memberIndex].role === 'owner')
-            return res.status(403).send('Forbidden')
+            return res.status(403).json({
+                success: false,
+                message: 'Forbidden'
+            })
 
         if (memberIndex > -1) {
             workspace.members.splice(memberIndex, 1)
@@ -189,7 +203,10 @@ router.patch(
 
         const user = workspace.members.find(x => x.user.toString() === userId)
         if (role === 'owner' || user.role === 'owner')
-            return res.status(403).send('Forbidden')
+            return res.status(403).json({
+                success: false,
+                message: 'Forbidden'
+            })
         workspace.members.find(x => x.user.toString() === userId).role =
             role.toLowerCase()
 
