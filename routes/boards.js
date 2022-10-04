@@ -88,7 +88,7 @@ router.patch(
         )
 
         const [board] = source.boards.splice(result.source.index, 1)
-        destination.boards.splice(result.destination.index, 0, board)
+        if (board) destination.boards.splice(result.destination.index, 0, board)
 
         await workspace.save()
         res.json({ success: true, message: 'OK' })
