@@ -78,8 +78,10 @@ router.patch(
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const { result } = req.body
+        const workspace = await Workspace.findById(workspaceId).populate(
+            'spaces'
+        )
 
-        const workspace = await Workspace.findById(workspaceId)
         const source = workspace.spaces.find(
             x => x._id.toString() === result.source.droppableId
         )
@@ -90,8 +92,19 @@ router.patch(
         const [board] = source.boards.splice(result.source.index, 1)
         if (board) destination.boards.splice(result.destination.index, 0, board)
 
-        await workspace.save()
-        res.json({ success: true, message: 'OK' })
+        const io = req.app.get('socketio')
+        io.to(workspace.id.toString())
+            .except(req.user._id.toString())
+            .emit(workspace.id.toString(), {
+                event: 'sortBoard',
+                id: workspace.id,
+                body: { result }
+            })
+
+        await source.save()
+        await destination.save()
+        res.json({ source, destination })
+        // res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -111,12 +124,22 @@ router.post(
         const board = new Board({
             _id,
             name,
-            workspace: workspace,
+            workspace,
+            space: spaceId,
             attributes: [],
             taskGroups: [],
             sharing: false
         })
         space.boards.push(board)
+
+        const io = req.app.get('socketio')
+        io.to(workspace.id.toString())
+            .except(req.user._id.toString())
+            .emit(workspace.id.toString(), {
+                event: 'addBoard',
+                id: workspace.id,
+                body: { spaceId, name, _id }
+            })
 
         await space.save()
         await board.save()
@@ -124,7 +147,7 @@ router.post(
     })
 )
 
-// edit board name
+// change board properties
 router.patch(
     '/:boardId',
     isLoggedIn,
@@ -132,9 +155,24 @@ router.patch(
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { name, groupBy } = req.body
-        const board = await Board.findById(boardId)
+        const board = await Board.findById(boardId).populate({
+            path: 'workspace',
+            select: 'id'
+        })
 
-        if (name) board.name = name
+        if (name) {
+            board.name = name
+
+            console.log(board.space)
+            const io = req.app.get('socketio')
+            io.to(board.workspace.id.toString())
+                .except(req.user._id.toString())
+                .emit(board.workspace.id.toString(), {
+                    event: 'editBoardName',
+                    id: board.workspace.id.toString(),
+                    body: { spaceId: board.space, boardId, name }
+                })
+        }
         if (groupBy) {
             board.groupBy = groupBy
 
@@ -157,11 +195,23 @@ router.delete(
     isLoggedIn,
     hasWritePerms,
     wrapAsync(async (req, res) => {
-        const { workspaceId, spaceId, boardId } = req.params
+        const { spaceId, boardId } = req.params
         const space = await Space.findById(spaceId)
-        await Board.findByIdAndDelete(boardId)
+        const board = await Board.findByIdAndDelete(boardId).populate({
+            path: 'workspace',
+            select: 'id'
+        })
 
         space.boards.remove(boardId)
+
+        const io = req.app.get('socketio')
+        io.to(board.workspace.id.toString())
+            .except(req.user._id.toString())
+            .emit(board.workspace.id.toString(), {
+                event: 'deleteBoard',
+                id: board.workspace.id.toString(),
+                body: { spaceId, boardId }
+            })
 
         await space.save()
         res.json({ success: true, message: 'OK' })

@@ -22,6 +22,15 @@ router.post(
         const space = new Space({ name, _id })
         workspace.spaces.push(space)
 
+        const io = req.app.get('socketio')
+        io.to(workspace.id.toString())
+            .except(req.user._id.toString())
+            .emit(workspace.id.toString(), {
+                event: 'addSpace',
+                id: workspace.id.toString(),
+                body: { name, _id }
+            })
+
         await space.save()
         await workspace.save()
         res.json({ success: true, message: 'OK' })
@@ -42,7 +51,16 @@ router.patch(
         const [space] = workspace.spaces.splice(result.source.index, 1)
         workspace.spaces.splice(result.destination.index, 0, space)
 
-        workspace.save()
+        const io = req.app.get('socketio')
+        io.to(workspace.id.toString())
+            .except(req.user._id.toString())
+            .emit(workspace.id.toString(), {
+                event: 'sortSpace',
+                id: workspace.id.toString(),
+                body: { result }
+            })
+
+        await workspace.save()
         res.json({ success: true, message: 'OK' })
     })
 )
@@ -64,7 +82,16 @@ router.patch(
 
         space.name = name
 
-        space.save()
+        const io = req.app.get('socketio')
+        io.to(workspace.id.toString())
+            .except(req.user._id.toString())
+            .emit(workspace.id.toString(), {
+                event: 'editSpaceName',
+                id: workspace.id.toString(),
+                body: { spaceId, name }
+            })
+
+        await space.save()
         res.json({ success: true, message: 'OK' })
     })
 )
@@ -85,6 +112,15 @@ router.delete(
             _id: { $in: workspace.spaces[spaceIndex].boards }
         })
         workspace.spaces.splice(spaceIndex, 1)
+
+        const io = req.app.get('socketio')
+        io.to(workspace.id.toString())
+            .except(req.user._id.toString())
+            .emit(workspace.id.toString(), {
+                event: 'deleteSpace',
+                id: workspace.id.toString(),
+                body: { spaceId }
+            })
 
         await workspace.save()
         res.json({ success: true, message: 'OK' })
