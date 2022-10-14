@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
@@ -26,6 +27,12 @@ const userSchema = new mongoose.Schema({
         {
             type: Schema.Types.ObjectId,
             ref: 'Task'
+        }
+    ],
+    refreshTokens: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'RefreshToken'
         }
     ]
 })

@@ -1,5 +1,7 @@
 const Board = require('./models/board')
 const Workspace = require('./models/workspace')
+const { verify } = require('jsonwebtoken')
+const AppError = require('./HttpError')
 
 const wrapAsync = func => {
     return async (req, res, next) => {
@@ -40,9 +42,17 @@ const checkPerms = async req => {
 }
 
 module.exports.isLoggedIn = wrapAsync((req, res, next) => {
-    if (!req.user) {
-        return res.status(403).send('Forbidden - not logged in')
-    } else next()
+    const authorization = req.headers['authorization']
+    if (!authorization) throw new AppError('Invalid access token', 403)
+
+    try {
+        const token = authorization.split(' ')[1]
+        const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
+        req['user'] = payload
+    } catch (err) {
+        throw new AppError('Invalid access token', 403)
+    }
+    next()
 })
 
 module.exports.hasAdminPerms = wrapAsync(async (req, res, next) => {
