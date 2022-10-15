@@ -12,6 +12,7 @@ const {
     sendRefreshToken,
     createRefreshTokenDoc
 } = require('../utils/auth')
+const { authenticator } = require('otplib')
 
 router.get(
     '/logout',
@@ -71,7 +72,7 @@ router.get(
 router.post(
     '/login',
     wrapAsync(async (req, res) => {
-        const { email, password } = req.body
+        const { email, password, totp } = req.body
         let user = await User.findOne({ email })
             .populate('refreshTokens')
             .populate({
@@ -106,6 +107,36 @@ router.post(
 
         const valid = await bcrypt.compareSync(password, user.password)
         if (!valid) throw new AppError('Invalid password', 400)
+
+        if (user.multiFactorAuth) {
+            const totpMethod = user.multiFactorMethods.find(
+                x => x.type === 'totp'
+            )
+            if (totp && totpMethod) {
+                try {
+                    const valid = authenticator.check(totp, totpMethod.secret)
+                    if (!valid) {
+                        if (totpMethod.backup_codes.includes(totp)) {
+                            totpMethod.backup_codes =
+                                totpMethod.backup_codes.filter(
+                                    x => x.toString() !== totp
+                                )
+                        } else throw Error()
+                    }
+                } catch (err) {
+                    throw new AppError(
+                        'Invalid Multi Factor Authentication',
+                        400
+                    )
+                }
+            } else {
+                return res.json({
+                    success: false,
+                    nextStep: 'mfa',
+                    methods: ['totp', 'webauthn', 'email']
+                })
+            }
+        }
 
         // remove expired refreshTokens
         const expiredTokens = user.refreshTokens

@@ -29,6 +29,17 @@ const userSchema = new mongoose.Schema({
             ref: 'Task'
         }
     ],
+    multiFactorAuth: {
+        type: Boolean,
+        default: false
+    },
+    multiFactorMethods: [
+        {
+            type: { type: String },
+            secret: String,
+            backup_codes: [Number]
+        }
+    ],
     refreshTokens: [
         {
             type: Schema.Types.ObjectId,
