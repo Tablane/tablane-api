@@ -2,24 +2,16 @@ const { sign } = require('jsonwebtoken')
 const parser = require('ua-parser-js')
 const RefreshToken = require('../models/refreshToken')
 
-exports.createAccessToken = user => {
-    return sign(
-        { user: { email: user.email } },
-        process.env.ACCESS_TOKEN_SECRET,
-        {
-            expiresIn: '15s'
-        }
-    )
+exports.createAccessToken = _id => {
+    return sign({ user: { _id } }, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '10s'
+    })
 }
 
-exports.createRefreshToken = async user => {
-    return await sign(
-        { user: { email: user.email } },
-        process.env.REFRESH_TOKEN_SECRET,
-        {
-            expiresIn: '1m'
-        }
-    )
+exports.createRefreshToken = async _id => {
+    return await sign({ user: { _id } }, process.env.REFRESH_TOKEN_SECRET, {
+        expiresIn: '30s'
+    })
 }
 
 exports.sendRefreshToken = (res, token) => {

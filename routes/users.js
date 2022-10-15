@@ -19,12 +19,14 @@ router.get(
         const sessionId = req.session.id
         const io = req.app.get('socketio')
 
-        req.session.destroy(() => {
-            io.to(sessionId).disconnectSockets()
-            res.status(204).end()
-        })
+        // req.session.destroy(() => {
+        //     io.to(sessionId).disconnectSockets()
+        //     res.status(204).end()
+        // })
+        //
+        // req.logout()
 
-        req.logout()
+        res.clearCookie('refresh_token')
         res.json({ success: true, message: 'OK' })
     })
 )
@@ -54,12 +56,53 @@ router.post(
     })
 )
 
+router.get(
+    '/workspaces',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        const user = await User.findById(req.user._id).populate('workspaces')
+        res.json({
+            success: true,
+            workspaces: user.workspaces
+        })
+    })
+)
+
 router.post(
     '/login',
     wrapAsync(async (req, res) => {
         const { email, password } = req.body
-        let user = await User.findOne({ email }).populate('refreshTokens')
+        let user = await User.findOne({ email })
+            .populate('refreshTokens')
+            .populate({
+                path: 'workspaces',
+                select: ['id', 'name']
+            })
+            .populate({
+                path: 'assignedTasks',
+                select: ['name', 'options', 'workspace', 'board'],
+                populate: [
+                    {
+                        path: 'workspace',
+                        select: ['_id']
+                    },
+                    {
+                        path: 'board',
+                        select: ['space', 'name'],
+                        populate: {
+                            path: 'space',
+                            select: 'name'
+                        }
+                    }
+                ]
+            })
         if (!user) throw new AppError('User does not exist', 400)
+
+        if (!password)
+            return res.json({
+                success: false,
+                nextStep: 'password'
+            })
 
         const valid = await bcrypt.compareSync(password, user.password)
         if (!valid) throw new AppError('Invalid password', 400)
@@ -75,7 +118,7 @@ router.post(
             return !expiredTokens.includes(x._id)
         })
 
-        const token = await createRefreshToken(user)
+        const token = await createRefreshToken(user._id)
         const refreshToken = createRefreshTokenDoc(req, token, user)
         user.refreshTokens.push(refreshToken)
         sendRefreshToken(res, token)
@@ -84,8 +127,13 @@ router.post(
         await user.save()
         res.json({
             success: true,
+            accessToken: createAccessToken(user._id),
             user: {
-                accessToken: createAccessToken(user)
+                username: user.username,
+                workspaces: user.workspaces,
+                _id: user._id,
+                assignedTasks: user.assignedTasks,
+                newNotifications: user.newNotifications
             }
         })
     })
@@ -104,9 +152,30 @@ router.get(
             throw new AppError('invalid refresh token', 400)
         }
 
-        const user = await User.findOne({ email: payload.user.email }).populate(
-            'refreshTokens'
-        )
+        const user = await User.findById(payload.user._id)
+            .populate('refreshTokens')
+            .populate({
+                path: 'workspaces',
+                select: ['id', 'name']
+            })
+            .populate({
+                path: 'assignedTasks',
+                select: ['name', 'options', 'workspace', 'board'],
+                populate: [
+                    {
+                        path: 'workspace',
+                        select: ['_id']
+                    },
+                    {
+                        path: 'board',
+                        select: ['space', 'name'],
+                        populate: {
+                            path: 'space',
+                            select: 'name'
+                        }
+                    }
+                ]
+            })
         const currentRefreshToken = user.refreshTokens.find(
             x => x.token === token
         )
@@ -115,19 +184,25 @@ router.get(
                 x => x.token !== token
             )
             await RefreshToken.findByIdAndDelete(currentRefreshToken._id)
-            const newToken = await createRefreshToken(user)
+            const newToken = await createRefreshToken(user._id)
             const newRefreshToken = createRefreshTokenDoc(req, newToken, user)
             await newRefreshToken.save()
             user.refreshTokens.push(newRefreshToken)
             sendRefreshToken(res, newToken)
             await user.save()
         } else {
+            res.clearCookie('refresh_token')
             throw new AppError('invalid refresh token', 400)
         }
 
         res.json({
             success: true,
-            accessToken: createAccessToken(user)
+            accessToken: createAccessToken(user._id),
+            username: user.username,
+            workspaces: user.workspaces,
+            _id: user._id,
+            assignedTasks: user.assignedTasks,
+            newNotifications: user.newNotifications
         })
     })
 )
@@ -136,12 +211,36 @@ router.get(
     '/',
     isLoggedIn,
     wrapAsync(async (req, res) => {
-        if (!req.user)
-            return res.status(200).json({
-                success: false,
-                error: 'Unauthorized'
+        const user = await User.findById(req.user._id)
+            .populate({
+                path: 'workspaces',
+                select: ['id', 'name']
             })
-        res.json(req.user)
+            .populate({
+                path: 'assignedTasks',
+                select: ['name', 'options', 'workspace', 'board'],
+                populate: [
+                    {
+                        path: 'workspace',
+                        select: ['_id']
+                    },
+                    {
+                        path: 'board',
+                        select: ['space', 'name'],
+                        populate: {
+                            path: 'space',
+                            select: 'name'
+                        }
+                    }
+                ]
+            })
+        res.json({
+            username: user.username,
+            workspaces: user.workspaces,
+            _id: user._id,
+            assignedTasks: user.assignedTasks,
+            newNotifications: user.newNotifications
+        })
     })
 )
 

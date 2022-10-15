@@ -53,7 +53,6 @@ router.post(
 router.get(
     '/:workspaceId',
     isLoggedIn,
-    hasReadPerms,
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         let workspace = await Workspace.findOne({ id: workspaceId })
@@ -72,12 +71,6 @@ router.get(
                 model: 'User',
                 select: ['_id', 'username', 'email']
             })
-
-        // only send workspace members to admins
-        const role = workspace.members.find(
-            x => x.user._id.toString() === req.user._id.toString()
-        ).role
-        if (role !== 'owner' && role !== 'admin') workspace.members = undefined
 
         res.json(workspace)
     })

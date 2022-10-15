@@ -2,6 +2,7 @@ const Board = require('./models/board')
 const Workspace = require('./models/workspace')
 const { verify } = require('jsonwebtoken')
 const AppError = require('./HttpError')
+const User = require('./models/user')
 
 const wrapAsync = func => {
     return async (req, res, next) => {
@@ -41,14 +42,21 @@ const checkPerms = async req => {
     }
 }
 
-module.exports.isLoggedIn = wrapAsync((req, res, next) => {
+module.exports.isLoggedIn = wrapAsync(async (req, res, next) => {
     const authorization = req.headers['authorization']
     if (!authorization) throw new AppError('Invalid access token', 403)
 
     try {
         const token = authorization.split(' ')[1]
         const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
-        req['user'] = payload
+        const user = await User.findById(payload.user._id)
+        req['user'] = {
+            username: user.username,
+            workspaces: user.workspaces,
+            _id: user._id,
+            assignedTasks: user.assignedTasks,
+            newNotifications: user.newNotifications
+        }
     } catch (err) {
         throw new AppError('Invalid access token', 403)
     }
