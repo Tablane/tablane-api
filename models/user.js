@@ -36,7 +36,14 @@ const userSchema = new mongoose.Schema({
         {
             type: { type: String },
             secret: String,
-            backup_codes: [Number]
+            backup_codes: [Number],
+            devices: [
+                {
+                    counter: Number,
+                    credentialID: Buffer,
+                    credentialPublicKey: Buffer
+                }
+            ]
         }
     ],
     refreshTokens: [

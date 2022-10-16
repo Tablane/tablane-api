@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@simplewebauthn/server": "^6.3.0-alpha.1",
     "axios": "^1.1.3",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.0",
