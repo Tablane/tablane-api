@@ -13,6 +13,8 @@ const {
     createRefreshTokenDoc
 } = require('../utils/auth')
 const { authenticator } = require('otplib')
+const axios = require('axios')
+const jwt = require('jsonwebtoken')
 
 router.get(
     '/logout',
@@ -69,6 +71,63 @@ router.get(
     })
 )
 
+router.get(
+    '/oauth/google',
+    wrapAsync(async (req, res) => {
+        const { code } = req.query
+
+        const { data } = await axios({
+            url: 'https://oauth2.googleapis.com/token',
+            method: 'POST',
+            data: {
+                code,
+                client_id: process.env.GOOGLE_OAUTH_CLIENT_ID,
+                client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+                redirect_uri: process.env.GOOGLE_OAUTH_REDIRECT_URL,
+                grant_type: 'authorization_code'
+            }
+        })
+
+        const { email, name, email_verified } = jwt.decode(data.id_token)
+
+        if (!email_verified)
+            return res.redirect(
+                `${process.env.FRONTEND_HOST}/error?error=Email not verified`
+            )
+
+        const user = await User.findOne({ email })
+
+        if (user) {
+            const token = await createRefreshToken(user._id)
+            const refreshToken = createRefreshTokenDoc(req, token, user)
+            user.refreshTokens.push(refreshToken)
+            sendRefreshToken(res, token)
+
+            await refreshToken.save()
+            await user.save()
+        } else {
+            const newUser = new User({
+                username: name,
+                workspaces: [],
+                password: null,
+                email
+            })
+
+            await newUser.save()
+
+            const token = await createRefreshToken(newUser._id)
+            const refreshToken = createRefreshTokenDoc(req, token, newUser)
+            newUser.refreshTokens.push(refreshToken)
+            sendRefreshToken(res, token)
+
+            await refreshToken.save()
+            await newUser.save()
+        }
+
+        res.redirect(process.env.FRONTEND_HOST)
+    })
+)
+
 router.post(
     '/login',
     wrapAsync(async (req, res) => {
@@ -105,6 +164,7 @@ router.post(
                 nextStep: 'password'
             })
 
+        if (!user.password) throw new AppError('Invalid password', 400)
         const valid = await bcrypt.compareSync(password, user.password)
         if (!valid) throw new AppError('Invalid password', 400)
 
