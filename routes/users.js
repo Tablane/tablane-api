@@ -137,7 +137,13 @@ router.get(
 router.post(
     '/login',
     wrapAsync(async (req, res) => {
-        const { email, password, totp } = req.body
+        const {
+            email,
+            password,
+            totp,
+            request_security_key_challenge,
+            authenticatorResponse
+        } = req.body
         let user = await User.findOne({ email })
             .populate('refreshTokens')
             .populate({
@@ -178,6 +184,12 @@ router.post(
             const totpMethod = user.multiFactorMethods.find(
                 x => x.type === 'totp'
             )
+            const securityKeyMethod = user.multiFactorMethods.find(
+                x => x.type === 'security_key'
+            )
+            const emailMethod = user.multiFactorMethods.find(
+                x => x.type === 'email'
+            )
             if (totp && totpMethod) {
                 try {
                     const valid = authenticator.check(totp, totpMethod.secret)
@@ -195,11 +207,61 @@ router.post(
                         400
                     )
                 }
+            } else if (securityKeyMethod && authenticatorResponse) {
+                const expectedChallenge = currentChallenges[user._id].challenge
+
+                const authenticator = securityKeyMethod.devices[0]
+
+                if (!authenticator) {
+                    throw new Error(
+                        `Could not find authenticator ${authenticatorResponse.id} for user ${user.id}`
+                    )
+                }
+
+                let verification
+                try {
+                    verification = await verifyAuthenticationResponse({
+                        credential: authenticatorResponse,
+                        expectedChallenge,
+                        expectedOrigin: 'http://localhost:3000',
+                        expectedRPID: 'localhost',
+                        authenticator
+                    })
+                } catch (error) {
+                    console.error(error)
+                    return res.status(400).send({ error: error.message })
+                }
+
+                const { verified } = verification
+                if (!verified) throw Error('somethings wrong, you are hacker')
+            } else if (securityKeyMethod && request_security_key_challenge) {
+                const options = generateAuthenticationOptions({
+                    // Require users to use a previously-registered authenticator
+                    allowCredentials: securityKeyMethod.devices.map(
+                        authenticator => {
+                            return {
+                                id: authenticator.credentialID,
+                                type: 'public-key',
+                                // Optional
+                                transports: authenticator.transports
+                            }
+                        }
+                    ),
+                    userVerification: 'preferred'
+                })
+
+                // (Pseudocode) Remember this challenge for this user
+                currentChallenges[user._id] = {
+                    id: user._id.toString(),
+                    challenge: options.challenge
+                }
+
+                return res.json({ success: false, options })
             } else {
-                return res.json({
+                return res.status(200).json({
                     success: false,
                     nextStep: 'mfa',
-                    methods: ['totp', 'webauthn', 'email']
+                    methods: ['totp', 'security_key', 'email']
                 })
             }
         }
@@ -427,92 +489,6 @@ router.post(
         await user.save()
 
         res.json({ credentialPublicKey, credentialID, counter })
-    })
-)
-
-router.get(
-    '/generateAuthenticationOptions',
-    wrapAsync(async (req, res) => {
-        // (Pseudocode) Retrieve the logged-in user
-        const user = await User.findById('6348a3742cf25446c45fed8a')
-        // (Pseudocode) Retrieve any of the user's previously-
-        // registered authenticators
-        const userAuthenticators = user.multiFactorMethods.find(
-            x => x.type === 'security_key'
-        ).devices
-
-        const options = generateAuthenticationOptions({
-            // Require users to use a previously-registered authenticator
-            allowCredentials: userAuthenticators.map(authenticator => {
-                return {
-                    id: authenticator.credentialID,
-                    type: 'public-key',
-                    // Optional
-                    transports: authenticator.transports
-                }
-            }),
-            userVerification: 'preferred'
-        })
-
-        // (Pseudocode) Remember this challenge for this user
-        currentChallenges.push({
-            id: user._id.toString(),
-            challenge: options.challenge
-        })
-
-        res.json(options)
-    })
-)
-
-router.post(
-    '/verifyAuthentication',
-    wrapAsync(async (req, res) => {
-        const { body } = req
-
-        // (Pseudocode) Retrieve the logged-in user
-        const user = await User.findById('6348a3742cf25446c45fed8a')
-        // (Pseudocode) Get `options.challenge` that was saved above
-        const expectedChallenge = currentChallenges.find(
-            x => x.id === user._id.toString()
-        ).challenge
-
-        currentChallenges = currentChallenges.filter(
-            x => x.id !== user._id.toString()
-        )
-        // (Pseudocode} Retrieve an authenticator from the DB that
-        // should match the `id` in the returned credential
-        const authenticator = user.multiFactorMethods.find(
-            x => x.type === 'security_key'
-        ).devices[0]
-        // const authenticator = getUserAuthenticator(user, body.id)
-
-        if (!authenticator) {
-            throw new Error(
-                `Could not find authenticator ${body.id} for user ${user.id}`
-            )
-        }
-
-        let verification
-        try {
-            verification = await verifyAuthenticationResponse({
-                credential: body,
-                expectedChallenge,
-                expectedOrigin: 'http://localhost:3000',
-                expectedRPID: 'localhost',
-                authenticator
-            })
-        } catch (error) {
-            console.error(error)
-            return res.status(400).send({ error: error.message })
-        }
-
-        const { verified } = verification
-        if (verified) {
-            authenticator.counter += 1
-            await user.save()
-        }
-        res.json(verification)
-        // res.send(verified)
     })
 )
 
