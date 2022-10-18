@@ -20,6 +20,7 @@ const { Server } = require('socket.io')
 const { isLoggedIn, hasWritePerms, wrapAsync } = require('./middleware')
 const Board = require('./models/board')
 const Task = require('./models/task')
+const jwt = require('jsonwebtoken')
 
 dotenv.config()
 mongoose.connect(
@@ -78,21 +79,42 @@ app.use('/api/attribute', attributes)
 app.use('/api/notification', notification)
 
 io.on('connect', socket => {
-    if (!socket.request.session.passport?.user) {
-        socket.emit('not authenticated')
-        return socket.disconnect()
-    }
+    socket.on('token', payload => {
+        try {
+            const token = jwt.verify(
+                payload.token,
+                process.env.ACCESS_TOKEN_SECRET
+            )
+            socket.join(token.user._id)
+            socket.authenticated = true
+        } catch (err) {
+            socket.disconnect()
+        }
+    })
 
-    socket.join(socket.request.session.passport.user.toString())
+    setInterval(() => {
+        socket.emit('token', 'jwt_expiring')
+        socket.authenticated = false
+        setTimeout(() => {
+            if (!socket.authenticated) {
+                socket.emit('jwt_auth_failed', 'socket disconnected')
+                socket.disconnect()
+            }
+        }, 1000 * 15)
+    }, 1000 * 60 * 1)
 
     socket.on('subscribe', room => {
-        socket.join(room)
-        socket.emit('message', 'successfully joined room')
+        if (socket.authenticated) {
+            socket.join(room)
+            socket.emit('message', 'successfully joined room')
+        }
     })
 
     socket.on('unsubscribe', room => {
-        socket.leave(room)
-        socket.emit('message', 'successfully left room')
+        if (socket.authenticated) {
+            socket.leave(room)
+            socket.emit('message', 'successfully left room')
+        }
     })
 })
 
