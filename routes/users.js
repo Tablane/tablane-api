@@ -192,6 +192,7 @@ router.post(
             )
             if (totp && totpMethod) {
                 try {
+                    authenticator.options = { window: 2 }
                     const valid = authenticator.check(totp, totpMethod.secret)
                     if (!valid) {
                         if (totpMethod.backup_codes.includes(totp)) {
