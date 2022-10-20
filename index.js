@@ -14,6 +14,7 @@ const boards = require('./routes/boards')
 const tasks = require('./routes/tasks')
 const attributes = require('./routes/attributes')
 const notification = require('./routes/notifications')
+const roles = require('./routes/roles')
 const MongoDBStore = require('connect-mongodb-session')(session)
 const http = require('http').createServer(app)
 const { Server } = require('socket.io')
@@ -77,6 +78,7 @@ app.use('/api/board', boards)
 app.use('/api/task', tasks)
 app.use('/api/attribute', attributes)
 app.use('/api/notification', notification)
+app.use('/api/roles', roles)
 
 io.on('connect', socket => {
     socket.on('token', payload => {

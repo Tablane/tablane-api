@@ -15,8 +15,8 @@ const workspaceSchema = new mongoose.Schema({
             _id: false,
             user: Schema.Types.ObjectId,
             role: {
-                type: String,
-                enum: ['owner', 'admin', 'member', 'guest']
+                type: Schema.Types.ObjectId,
+                ref: 'Role'
             },
             labels: Array
         }
@@ -25,6 +25,12 @@ const workspaceSchema = new mongoose.Schema({
         {
             type: Schema.Types.ObjectId,
             ref: 'Space'
+        }
+    ],
+    roles: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Role'
         }
     ]
 })
