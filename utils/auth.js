@@ -4,13 +4,13 @@ const RefreshToken = require('../models/refreshToken')
 
 exports.createAccessToken = _id => {
     return sign({ user: { _id } }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: '10s'
+        expiresIn: '15m'
     })
 }
 
 exports.createRefreshToken = async _id => {
     return await sign({ user: { _id } }, process.env.REFRESH_TOKEN_SECRET, {
-        expiresIn: '30s'
+        expiresIn: '24h'
     })
 }
 
@@ -24,7 +24,7 @@ exports.createRefreshTokenDoc = (req, token, user) => {
     const ua = parser(req.headers['user-agent'])
 
     return new RefreshToken({
-        expiresAt: Date.now() + 1000 * 10,
+        expiresAt: Date.now() + 1000 * 60 * 60 * 24,
         token,
         user,
         device: `${ua.browser.name} on ${ua.os.name}`,

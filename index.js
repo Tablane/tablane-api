@@ -78,7 +78,7 @@ app.use('/api/board', boards)
 app.use('/api/task', tasks)
 app.use('/api/attribute', attributes)
 app.use('/api/notification', notification)
-app.use('/api/roles', roles)
+app.use('/api/role', roles)
 
 io.on('connect', socket => {
     socket.on('token', payload => {
@@ -103,7 +103,7 @@ io.on('connect', socket => {
                 socket.disconnect()
             }
         }, 1000 * 15)
-    }, 1000 * 60 * 1)
+    }, 1000 * 60 * 15)
 
     socket.on('subscribe', room => {
         if (socket.authenticated) {

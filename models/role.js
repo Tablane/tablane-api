@@ -1,6 +1,4 @@
 const mongoose = require('mongoose')
-const User = require('../models/user')
-const Board = require('../models/board')
 const Schema = mongoose.Schema
 
 const roleSchema = new mongoose.Schema({

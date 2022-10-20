@@ -13,11 +13,15 @@ const workspaceSchema = new mongoose.Schema({
     members: [
         {
             _id: false,
-            user: Schema.Types.ObjectId,
+            user: {
+                type: Schema.Types.ObjectId,
+                ref: 'User'
+            },
             role: {
                 type: Schema.Types.ObjectId,
                 ref: 'Role'
             },
+            isOwner: Boolean,
             labels: Array
         }
     ],

@@ -2,7 +2,7 @@ const router = require('express').Router()
 const Workspace = require('../models/workspace')
 const Space = require('../models/space')
 const Board = require('../models/board')
-const Role = require('../models/board')
+const Role = require('../models/role')
 const {
     wrapAsync,
     isLoggedIn,
@@ -51,8 +51,8 @@ router.patch(
 
         const workspace = await Workspace.findById(workspaceId)
 
-        const [space] = workspace.spaces.splice(result.source.index, 1)
-        workspace.spaces.splice(result.destination.index, 0, space)
+        const [role] = workspace.roles.splice(result.source.index, 1)
+        workspace.roles.splice(result.destination.index, 0, role)
 
         const io = req.app.get('socketio')
         io.to(workspace.id.toString())
@@ -81,7 +81,7 @@ router.patch(
             path: 'roles',
             select: 'name'
         })
-        const role = workspace.spaces.find(x => x._id.toString() === roleId)
+        const role = workspace.roles.find(x => x._id.toString() === roleId)
 
         role.name = name
 

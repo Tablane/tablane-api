@@ -13,7 +13,6 @@ const {
 router.get(
     '/:boardId',
     isLoggedIn,
-    hasReadPerms,
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const board = await Board.findById(boardId).populate({

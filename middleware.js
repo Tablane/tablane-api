@@ -14,6 +14,14 @@ const wrapAsync = func => {
     }
 }
 
+module.exports.hasPerms = (workspace, user, permission) => {
+    const member = workspace.members.find(
+        x => x.user.toString() === user._id.toString()
+    )
+    if (member.isOwner) return true
+    return member.role.permissions.includes(permission)
+}
+
 const checkPerms = async req => {
     const { boardId, workspaceId } = req.params
     if (boardId) {
