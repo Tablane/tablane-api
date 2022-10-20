@@ -204,7 +204,27 @@ router.patch(
         workspace.members.find(x => x.user.toString() === userId).role =
             role.toLowerCase()
 
-        workspace.save()
+        await workspace.save()
+        res.json({ success: true, message: 'OK' })
+    })
+)
+
+// change permission for roles
+router.patch(
+    '/permission/:workspaceId/:roleId',
+    wrapAsync(async (req, res) => {
+        const { workspaceId, roleId } = req.params
+        const { key } = req.body
+        const workspace = await Workspace.findById(workspaceId).populate(
+            'roles'
+        )
+
+        const role = workspace.roles.find(x => x._id.toString() === roleId)
+        if (role.permissions.includes(key)) {
+            role.permissions = role.permissions.filter(x => x !== key)
+        } else role.permissions.push(key)
+
+        await role.save()
         res.json({ success: true, message: 'OK' })
     })
 )
