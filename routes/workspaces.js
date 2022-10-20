@@ -71,6 +71,7 @@ router.get(
                 model: 'User',
                 select: ['_id', 'username', 'email']
             })
+            .populate({ path: 'roles' })
 
         res.json(workspace)
     })
