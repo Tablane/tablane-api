@@ -16,7 +16,11 @@ exports.createRefreshToken = async _id => {
 
 exports.sendRefreshToken = (res, token) => {
     res.cookie('refresh_token', token, {
-        httpOnly: true
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Strict',
+        maxAge: 1000 * 60 * 60 * 24,
+        path: '/api/user/refresh'
     })
 }
 
