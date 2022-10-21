@@ -72,6 +72,7 @@ router.get(
                 select: ['_id', 'username', 'email']
             })
             .populate({ path: 'roles' })
+            .populate({ path: 'members.role', select: 'name' })
 
         res.json(workspace)
     })
