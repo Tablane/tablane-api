@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
     },
     multiFactorMethods: [
         {
+            enabled: Boolean,
             type: { type: String },
             secret: String,
             backup_codes: [Number],

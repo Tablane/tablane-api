@@ -399,7 +399,8 @@ router.get(
             workspaces: user.workspaces,
             _id: user._id,
             assignedTasks: user.assignedTasks,
-            newNotifications: user.newNotifications
+            newNotifications: user.newNotifications,
+            email: user.email
         })
     })
 )
@@ -490,6 +491,35 @@ router.post(
         await user.save()
 
         res.json({ credentialPublicKey, credentialID, counter })
+    })
+)
+
+router.patch(
+    '/profile',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        // res.json({ success: true, message: 'OK' })
+        res.json({ success: false, message: 'sudo mode required' })
+    })
+)
+
+router.delete(
+    '/session/:sessionId',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        console.log(req.user)
+        res.json({ success: true, message: 'OK' })
+        // res.json({ success: false, message: 'sudo mode required' })
+    })
+)
+
+router.post(
+    '/mfa/totp/setup',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        console.log(req.user)
+        res.json({ success: true, message: 'OK' })
+        // res.json({ success: false, message: 'sudo mode required' })
     })
 )
 
