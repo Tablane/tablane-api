@@ -32,12 +32,11 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    multiFactorMethods: [
-        {
-            enabled: Boolean,
-            type: { type: String },
-            secret: String,
-            backup_codes: [Number],
+    multiFactorMethods: {
+        totp: { enabled: Boolean, secret: String },
+        backupCodes: { enabled: Boolean, codes: [Number] },
+        email: { enabled: Boolean },
+        securityKey: {
             devices: [
                 {
                     counter: Number,
@@ -46,7 +45,7 @@ const userSchema = new mongoose.Schema({
                 }
             ]
         }
-    ],
+    },
     refreshTokens: [
         {
             type: Schema.Types.ObjectId,

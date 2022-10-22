@@ -400,7 +400,18 @@ router.get(
             _id: user._id,
             assignedTasks: user.assignedTasks,
             newNotifications: user.newNotifications,
-            email: user.email
+            email: user.email,
+            multiFactorMethods: {
+                totp: { enabled: user.multiFactorMethods.totp.enabled },
+                backupCodes: {
+                    enabled: user.multiFactorMethods.backupCodes.enabled
+                },
+                email: { enabled: user.multiFactorMethods.email.enabled },
+                securityKey: {
+                    enabled:
+                        user.multiFactorMethods.securityKey.devices.length > 0
+                }
+            }
         })
     })
 )
@@ -494,6 +505,17 @@ router.post(
     })
 )
 
+router.get(
+    '/profile',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        const user = await User.findById(req.user._id)
+        res.json(user)
+        // res.json({ success: true, message: 'OK' })
+        // res.json({ success: false, message: 'sudo mode required' })
+    })
+)
+
 router.patch(
     '/profile',
     isLoggedIn,
@@ -507,7 +529,6 @@ router.delete(
     '/session/:sessionId',
     isLoggedIn,
     wrapAsync(async (req, res) => {
-        console.log(req.user)
         res.json({ success: true, message: 'OK' })
         // res.json({ success: false, message: 'sudo mode required' })
     })
@@ -517,7 +538,42 @@ router.post(
     '/mfa/totp/setup',
     isLoggedIn,
     wrapAsync(async (req, res) => {
-        console.log(req.user)
+        const { token } = req.body
+        const user = await User.findById(req.user._id)
+
+        if (token) {
+            const isValid = authenticator.check(
+                token,
+                user.multiFactorMethods.totp.secret
+            )
+            if (!isValid)
+                return res
+                    .status(400)
+                    .json({ success: false, message: 'Invalid Code' })
+            user.multiFactorMethods.totp.enabled = true
+        } else {
+            const secret = authenticator.generateSecret()
+            user.multiFactorMethods.totp = { enabled: false, secret }
+            await user.save()
+            return res.json({ success: true, secret })
+        }
+
+        await user.save()
+        res.json({ success: true, message: 'OK' })
+        // res.json({ success: false, message: 'sudo mode required' })
+    })
+)
+
+router.delete(
+    '/mfa/totp',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        const { token } = req.body
+        const user = await User.findById(req.user._id)
+
+        user.multiFactorMethods.totp = { enabled: false, secret: '' }
+
+        await user.save()
         res.json({ success: true, message: 'OK' })
         // res.json({ success: false, message: 'sudo mode required' })
     })
