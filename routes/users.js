@@ -571,6 +571,52 @@ router.delete(
     isLoggedIn,
     isSudoMode,
     wrapAsync(async (req, res) => {
+        const user = await User.findById(req.user._id)
+
+        user.multiFactorMethods.totp = { enabled: false, secret: '' }
+
+        await user.save()
+        res.json({ success: true, message: 'OK' })
+        // res.json({ success: false, message: 'sudo mode required' })
+    })
+)
+
+router.post(
+    '/mfa/email/setup',
+    isLoggedIn,
+    isSudoMode,
+    wrapAsync(async (req, res) => {
+        const { token } = req.body
+        const user = await User.findById(req.user._id)
+
+        if (token) {
+            const isValid = authenticator.check(
+                token,
+                user.multiFactorMethods.totp.secret
+            )
+            if (!isValid)
+                return res
+                    .status(400)
+                    .json({ success: false, message: 'Invalid Code' })
+            user.multiFactorMethods.totp.enabled = true
+        } else {
+            const secret = authenticator.generateSecret()
+            user.multiFactorMethods.totp = { enabled: false, secret }
+            await user.save()
+            return res.json({ success: true, secret })
+        }
+
+        await user.save()
+        res.json({ success: true, message: 'OK' })
+        // res.json({ success: false, message: 'sudo mode required' })
+    })
+)
+
+router.delete(
+    '/mfa/email',
+    isLoggedIn,
+    isSudoMode,
+    wrapAsync(async (req, res) => {
         const { token } = req.body
         const user = await User.findById(req.user._id)
 
