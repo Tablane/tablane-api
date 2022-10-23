@@ -2,8 +2,8 @@ const { sign } = require('jsonwebtoken')
 const parser = require('ua-parser-js')
 const RefreshToken = require('../models/refreshToken')
 
-exports.createAccessToken = _id => {
-    return sign({ user: { _id } }, process.env.ACCESS_TOKEN_SECRET, {
+exports.createAccessToken = (_id, sudoMode = false) => {
+    return sign({ user: { _id, sudoMode } }, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '15m'
     })
 }

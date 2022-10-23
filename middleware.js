@@ -71,6 +71,21 @@ module.exports.isLoggedIn = wrapAsync(async (req, res, next) => {
     next()
 })
 
+module.exports.isSudoMode = wrapAsync(async (req, res, next) => {
+    const authorization = req.headers['authorization']
+    if (!authorization) throw new AppError('Invalid access token', 403)
+
+    try {
+        const token = authorization.split(' ')[1]
+        const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const hasSudoMode = payload.user.sudoMode
+        if (!hasSudoMode) throw new AppError('sudo mode required', 200)
+    } catch (err) {
+        throw new AppError('sudo mode required', 200)
+    }
+    next()
+})
+
 module.exports.hasAdminPerms = wrapAsync(async (req, res, next) => {
     const role = await checkPerms(req)
     if (role === 'owner' || role === 'admin') next()

@@ -3,8 +3,8 @@ const User = require('./../models/user')
 const RefreshToken = require('./../models/refreshToken')
 const router = require('express').Router()
 const bcrypt = require('bcrypt')
-const { wrapAsync, isLoggedIn } = require('../middleware')
-const { verify } = require('jsonwebtoken')
+const { wrapAsync, isLoggedIn, isSudoMode } = require('../middleware')
+const { verify, sign } = require('jsonwebtoken')
 const AppError = require('../HttpError')
 const {
     createAccessToken,
@@ -512,7 +512,7 @@ router.get(
         const user = await User.findById(req.user._id)
         res.json(user)
         // res.json({ success: true, message: 'OK' })
-        // res.json({ success: false, message: 'sudo mode required' })
+        res.json({ success: false, message: 'sudo mode required' })
     })
 )
 
@@ -529,15 +529,17 @@ router.delete(
     '/session/:sessionId',
     isLoggedIn,
     wrapAsync(async (req, res) => {
-        res.json({ success: true, message: 'OK' })
-        // res.json({ success: false, message: 'sudo mode required' })
+        // res.json({ success: true, message: 'OK' })
+        res.json({ success: false, message: 'sudo mode required' })
     })
 )
 
 router.post(
     '/mfa/totp/setup',
     isLoggedIn,
+    isSudoMode,
     wrapAsync(async (req, res) => {
+        // return res.json({ success: false, message: 'sudo mode required' })
         const { token } = req.body
         const user = await User.findById(req.user._id)
 
@@ -567,6 +569,7 @@ router.post(
 router.delete(
     '/mfa/totp',
     isLoggedIn,
+    isSudoMode,
     wrapAsync(async (req, res) => {
         const { token } = req.body
         const user = await User.findById(req.user._id)
@@ -576,6 +579,23 @@ router.delete(
         await user.save()
         res.json({ success: true, message: 'OK' })
         // res.json({ success: false, message: 'sudo mode required' })
+    })
+)
+
+router.post(
+    '/sudoMode',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        const { password } = req.body
+        const user = await User.findById(req.user._id)
+
+        const valid = await bcrypt.compareSync(password, user.password)
+        if (!valid) throw new AppError('Invalid password', 400)
+
+        res.json({
+            success: true,
+            accessToken: createAccessToken(user._id, true)
+        })
     })
 )
 
