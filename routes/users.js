@@ -510,27 +510,25 @@ router.get(
     isLoggedIn,
     wrapAsync(async (req, res) => {
         const user = await User.findById(req.user._id)
-        res.json(user)
-        // res.json({ success: true, message: 'OK' })
-        res.json({ success: false, message: 'sudo mode required' })
+        res.json({ success: true, message: 'OK' })
     })
 )
 
 router.patch(
     '/profile',
     isLoggedIn,
+    isSudoMode,
     wrapAsync(async (req, res) => {
-        // res.json({ success: true, message: 'OK' })
-        res.json({ success: false, message: 'sudo mode required' })
+        res.json({ success: true, message: 'Successfully updated profile' })
     })
 )
 
 router.delete(
     '/session/:sessionId',
     isLoggedIn,
+    isSudoMode,
     wrapAsync(async (req, res) => {
-        // res.json({ success: true, message: 'OK' })
-        res.json({ success: false, message: 'sudo mode required' })
+        res.json({ success: true, message: 'OK' })
     })
 )
 
@@ -589,26 +587,10 @@ router.post(
         const { token } = req.body
         const user = await User.findById(req.user._id)
 
-        if (token) {
-            const isValid = authenticator.check(
-                token,
-                user.multiFactorMethods.totp.secret
-            )
-            if (!isValid)
-                return res
-                    .status(400)
-                    .json({ success: false, message: 'Invalid Code' })
-            user.multiFactorMethods.totp.enabled = true
-        } else {
-            const secret = authenticator.generateSecret()
-            user.multiFactorMethods.totp = { enabled: false, secret }
-            await user.save()
-            return res.json({ success: true, secret })
-        }
+        user.multiFactorMethods.email.enabled = true
 
         await user.save()
         res.json({ success: true, message: 'OK' })
-        // res.json({ success: false, message: 'sudo mode required' })
     })
 )
 
@@ -620,11 +602,10 @@ router.delete(
         const { token } = req.body
         const user = await User.findById(req.user._id)
 
-        user.multiFactorMethods.totp = { enabled: false, secret: '' }
+        user.multiFactorMethods.totp.enabled = false
 
         await user.save()
         res.json({ success: true, message: 'OK' })
-        // res.json({ success: false, message: 'sudo mode required' })
     })
 )
 
