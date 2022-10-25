@@ -602,7 +602,7 @@ router.delete(
         const { token } = req.body
         const user = await User.findById(req.user._id)
 
-        user.multiFactorMethods.totp.enabled = false
+        user.multiFactorMethods.email.enabled = false
 
         await user.save()
         res.json({ success: true, message: 'OK' })
