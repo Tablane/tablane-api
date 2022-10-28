@@ -632,6 +632,29 @@ router.post(
     })
 )
 
+router.put(
+    '/mfa/backupCodes/regenerate',
+    isLoggedIn,
+    isSudoMode,
+    wrapAsync(async (req, res) => {
+        const user = await User.findById(req.user._id)
+
+        const getCodes = () => {
+            return Array.from({ length: 10 }, () =>
+                Math.floor(Math.random() * (999999 - 100000 + 1) + 100000)
+            )
+        }
+
+        user.multiFactorMethods.backupCodes = {
+            enabled: true,
+            codes: getCodes()
+        }
+
+        await user.save()
+        res.json({ success: true, message: 'OK' })
+    })
+)
+
 router.delete(
     '/mfa/backupCodes',
     isLoggedIn,
@@ -639,7 +662,7 @@ router.delete(
     wrapAsync(async (req, res) => {
         const user = await User.findById(req.user._id)
 
-        user.multiFactorMethods.backupCodes.enabled = false
+        user.multiFactorMethods.backupCodes = { enabled: false, codes: [] }
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -652,9 +675,6 @@ router.get(
     isSudoMode,
     wrapAsync(async (req, res) => {
         const user = await User.findById(req.user._id)
-
-        console.log(user.multiFactorMethods.backupCodes)
-        // user.multiFactorMethods.backupCodes.enabled = false
 
         await user.save()
         res.json({
