@@ -18,14 +18,8 @@ const { Server } = require('socket.io')
 const jwt = require('jsonwebtoken')
 
 dotenv.config()
-mongoose.connect(
-    process.env.DB_CONNECT,
-    {
-        useNewUrlParser: true,
-        useCreateIndex: true,
-        useUnifiedTopology: true
-    },
-    () => console.log('connected to database')
+mongoose.connect(process.env.DB_CONNECT, {}, () =>
+    console.log('connected to database')
 )
 
 const corsOptions = {
