@@ -1,13 +1,13 @@
 const router = require('express').Router()
 const Board = require('../models/board')
-const { isLoggedIn, hasWritePerms, wrapAsync } = require('../middleware')
+const { isLoggedIn, wrapAsync, hasPermission } = require('../middleware')
 const mongoose = require('mongoose')
 
 // create new attribute
 router.post(
     '/:boardId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:COLUMN'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { type, _id } = req.body
@@ -46,7 +46,7 @@ router.post(
 router.patch(
     '/:boardId/:attributeId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:COLUMN'),
     wrapAsync(async (req, res) => {
         const { boardId, attributeId } = req.params
         const { name } = req.body
@@ -70,7 +70,7 @@ router.patch(
 router.patch(
     '/:boardId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:COLUMN'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { result } = req.body
@@ -96,7 +96,7 @@ router.patch(
 router.put(
     '/:boardId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:COLUMN'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { name, labels } = req.body
@@ -125,7 +125,7 @@ router.put(
 router.delete(
     '/:boardId/:attributeId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:COLUMN'),
     wrapAsync(async (req, res) => {
         const { boardId, attributeId } = req.params
         const board = await Board.findById(boardId).populate('tasks')

@@ -40,6 +40,10 @@ router.post(
 router.post(
     '/:workspaceId/:taskId',
     wrapAsync(async (req, res) => {
+        return res.json({
+            success: false,
+            message: 'This route is not available in production'
+        })
         const { workspaceId, taskId } = req.params
         const { change_type } = req.body
         const notification = new Notification({

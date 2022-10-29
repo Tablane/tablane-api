@@ -5,9 +5,10 @@ const Space = require('../models/space')
 const {
     wrapAsync,
     isLoggedIn,
-    hasWritePerms,
-    hasPermission
+    hasPermission,
+    hasPerms
 } = require('../middleware')
+const PermissionError = require('../PermissionError')
 
 // get board info
 router.get(
@@ -48,7 +49,7 @@ router.get(
 router.patch(
     '/share/:boardId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:SHARING'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { share } = req.body
@@ -74,7 +75,7 @@ router.patch(
 router.patch(
     '/drag/:workspaceId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:BOARD'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const { result } = req.body
@@ -112,7 +113,7 @@ router.patch(
 router.post(
     '/:workspaceId/:spaceId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:BOARD'),
     wrapAsync(async (req, res) => {
         const { workspaceId, spaceId } = req.params
         const { _id, name } = req.body
@@ -151,19 +152,20 @@ router.post(
 router.patch(
     '/:boardId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:SHARING'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { name, groupBy } = req.body
         const board = await Board.findById(boardId).populate({
             path: 'workspace',
-            select: 'id'
+            populate: ['roles', 'members.role']
         })
 
         if (name) {
+            if (!hasPerms(board.workspace, req.user, 'MANAGE:SHARING'))
+                throw new PermissionError('MANAGE:SHARING')
             board.name = name
 
-            console.log(board.space)
             const io = req.app.get('socketio')
             io.to(board.workspace.id.toString())
                 .except(req.user._id.toString())
@@ -174,6 +176,8 @@ router.patch(
                 })
         }
         if (groupBy) {
+            if (!hasPerms(board.workspace, req.user, 'MANAGE:VIEW'))
+                throw new PermissionError('MANAGE:SHARING')
             board.groupBy = groupBy
 
             const io = req.app.get('socketio')
@@ -193,7 +197,7 @@ router.patch(
 router.delete(
     '/:workspaceId/:spaceId/:boardId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:BOARD'),
     wrapAsync(async (req, res) => {
         const { spaceId, boardId } = req.params
         const space = await Space.findById(spaceId)

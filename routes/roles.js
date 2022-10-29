@@ -3,16 +3,13 @@ const Workspace = require('../models/workspace')
 const Space = require('../models/space')
 const Board = require('../models/board')
 const Role = require('../models/role')
-const {
-    wrapAsync,
-    isLoggedIn,
-    hasReadPerms,
-    hasWritePerms
-} = require('../middleware')
+const { wrapAsync, isLoggedIn, hasPermission } = require('../middleware')
 
 // create new role
 router.post(
     '/:workspaceId',
+    isLoggedIn,
+    hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const { name, _id } = req.body
@@ -44,7 +41,7 @@ router.post(
 router.patch(
     '/drag/:workspaceId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const { result } = req.body
@@ -72,7 +69,7 @@ router.patch(
 router.patch(
     '/:workspaceId/:roleId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId, roleId } = req.params
         const { name } = req.body
@@ -103,7 +100,7 @@ router.patch(
 router.delete(
     '/:workspaceId/:roleId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId, roleId } = req.params
         const workspace = await Workspace.findById(workspaceId)

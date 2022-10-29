@@ -2,18 +2,13 @@ const router = require('express').Router()
 const Workspace = require('../models/workspace')
 const Space = require('../models/space')
 const Board = require('../models/board')
-const {
-    wrapAsync,
-    isLoggedIn,
-    hasReadPerms,
-    hasWritePerms
-} = require('../middleware')
+const { wrapAsync, isLoggedIn, hasPermission } = require('../middleware')
 
 // create new space
 router.post(
     '/:workspaceId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:SPACE'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const workspace = await Workspace.findById(workspaceId)
@@ -41,7 +36,7 @@ router.post(
 router.patch(
     '/drag/:workspaceId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:SPACE'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const { result } = req.body
@@ -69,7 +64,7 @@ router.patch(
 router.patch(
     '/:workspaceId/:spaceId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:SPACE'),
     wrapAsync(async (req, res) => {
         const { workspaceId, spaceId } = req.params
         const { name } = req.body
@@ -100,7 +95,7 @@ router.patch(
 router.delete(
     '/:workspaceId/:spaceId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:SPACE'),
     wrapAsync(async (req, res) => {
         const { workspaceId, spaceId } = req.params
         const workspace = await Workspace.findById(workspaceId)

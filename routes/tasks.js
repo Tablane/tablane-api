@@ -1,11 +1,5 @@
 const router = require('express').Router()
-const {
-    wrapAsync,
-    isLoggedIn,
-    hasBoardPerms,
-    hasReadPerms,
-    hasWritePerms
-} = require('../middleware')
+const { wrapAsync, isLoggedIn, hasPermission } = require('../middleware')
 const Task = require('../models/task')
 const User = require('../models/user')
 const Board = require('../models/board')
@@ -14,6 +8,7 @@ const Board = require('../models/board')
 router.post(
     '/watcher/:taskId',
     isLoggedIn,
+    hasPermission('MANAGE:TASK'),
     wrapAsync(async (req, res) => {
         const { taskId } = req.params
         const { userId } = req.body
@@ -40,6 +35,7 @@ router.post(
 router.delete(
     '/watcher/:taskId',
     isLoggedIn,
+    hasPermission('MANAGE:TASK'),
     wrapAsync(async (req, res) => {
         const { taskId } = req.params
         const { userId } = req.body
@@ -66,7 +62,7 @@ router.delete(
 router.patch(
     '/:boardId/:taskId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:TASK'),
     wrapAsync(async (req, res) => {
         const { boardId, taskId } = req.params
         const { column, value, type } = req.body
@@ -110,7 +106,7 @@ router.patch(
 router.delete(
     '/:boardId/:taskId/:optionId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:TASK'),
     wrapAsync(async (req, res) => {
         const { boardId, taskId, optionId } = req.params
         const board = await Board.findById(boardId).populate('tasks')
@@ -138,7 +134,7 @@ router.delete(
 router.patch(
     '/:boardId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('MANAGE:TASK'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { result, destinationIndex, sourceIndex } = req.body
@@ -180,7 +176,7 @@ router.patch(
 router.post(
     '/:boardId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('CREATE:TASK'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { name, taskGroupId, _id } = req.body
@@ -233,7 +229,7 @@ router.post(
 router.delete(
     '/:boardId/:taskId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('DELETE:TASK'),
     wrapAsync(async (req, res) => {
         const { boardId, taskId } = req.params
         const board = await Board.findById(boardId).populate('tasks')
@@ -259,7 +255,7 @@ router.delete(
 router.post(
     '/:boardId/:taskId',
     isLoggedIn,
-    hasWritePerms,
+    hasPermission('CREATE:COMMENT'),
     wrapAsync(async (req, res) => {
         const { boardId, taskId } = req.params
         const { text } = req.body
