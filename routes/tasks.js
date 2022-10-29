@@ -147,7 +147,13 @@ router.patch(
             option => option.column.toString() === board.groupBy
         )
         if (column) column.value = result.destination.droppableId
-        else if (result.destination.droppableId !== 'empty') {
+        else if (
+            !(
+                board.groupBy === 'none' ||
+                !board.groupBy ||
+                result.destination.droppableId === 'empty'
+            )
+        ) {
             task.options.push({
                 column: board.groupBy,
                 value: result.destination.droppableId
@@ -180,12 +186,19 @@ router.post(
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { name, taskGroupId, _id } = req.body
-        const board = await Board.findById(boardId).populate('tasks')
+        const board = await Board.findById(boardId).populate([
+            'tasks',
+            'workspace'
+        ])
 
         const task = new Task({
             _id,
             name,
             options: [],
+            board: board,
+            description: '',
+            watcher: [],
+            workspace: board.workspace,
             history: [
                 {
                     type: 'activity',
