@@ -523,12 +523,45 @@ router.patch(
     })
 )
 
+router.get(
+    '/session',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        const user = await User.findById(req.user._id).populate('refreshTokens')
+
+        let sessions = []
+        user.refreshTokens.map(({ device, lastActive, _id }) => {
+            sessions.push({
+                device,
+                lastActive,
+                _id
+            })
+        })
+
+        res.json({
+            success: true,
+            sessions
+        })
+    })
+)
+
 router.delete(
     '/session/:sessionId',
     isLoggedIn,
     isSudoMode,
     wrapAsync(async (req, res) => {
-        res.json({ success: true, message: 'OK' })
+        const { sessionId } = req.params
+        const user = await User.findById(req.user._id).populate('refreshTokens')
+
+        user.refreshTokens = user.refreshTokens.filter(
+            session => session._id != sessionId
+        )
+
+        await user.save()
+        res.json({
+            success: true,
+            message: 'OK'
+        })
     })
 )
 
@@ -537,7 +570,6 @@ router.post(
     isLoggedIn,
     isSudoMode,
     wrapAsync(async (req, res) => {
-        // return res.json({ success: false, message: 'sudo mode required' })
         const { token } = req.body
         const user = await User.findById(req.user._id)
 
@@ -560,7 +592,6 @@ router.post(
 
         await user.save()
         res.json({ success: true, message: 'OK' })
-        // res.json({ success: false, message: 'sudo mode required' })
     })
 )
 
@@ -575,7 +606,6 @@ router.delete(
 
         await user.save()
         res.json({ success: true, message: 'OK' })
-        // res.json({ success: false, message: 'sudo mode required' })
     })
 )
 
