@@ -123,7 +123,7 @@ router.post(
     hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
-        const { email, role } = req.body
+        const { email, roleId } = req.body
         const workspace = await Workspace.findById(workspaceId)
         const user = await User.findOne({ email })
 
@@ -140,7 +140,7 @@ router.post(
 
         workspace.members.push({
             user: user,
-            role: role.toLowerCase(),
+            role: roleId,
             labels: []
         })
         user.workspaces.push(workspace)
