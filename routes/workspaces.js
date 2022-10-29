@@ -4,9 +4,10 @@ const User = require('../models/user')
 const {
     wrapAsync,
     isLoggedIn,
-    hasAdminPerms,
-    hasPermission
+    hasPermission,
+    hasPerms
 } = require('../middleware')
+const PermissionError = require('../PermissionError')
 
 // create a new workspace
 router.post(
@@ -35,7 +36,7 @@ router.post(
                 {
                     labels: [],
                     user: req.user._id,
-                    role: 'owner'
+                    isOwner: true
                 }
             ]
         })
@@ -54,7 +55,7 @@ router.get(
     isLoggedIn,
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
-        let workspace = await Workspace.findOne({ id: workspaceId })
+        const workspace = await Workspace.findOne({ id: workspaceId })
             .populate({
                 path: 'spaces',
                 model: 'Space',
@@ -73,6 +74,13 @@ router.get(
             .populate({ path: 'roles' })
             .populate({ path: 'members.role', select: 'name' })
 
+        // check perms
+        const localWorkspace = await Workspace.findOne({
+            id: workspaceId
+        }).populate(['roles', 'members.role'])
+        if (!hasPerms(localWorkspace, req.user, 'READ:PUBLIC'))
+            throw new PermissionError('READ:PUBLIC')
+
         res.json(workspace)
     })
 )
@@ -81,7 +89,7 @@ router.get(
 router.patch(
     '/:workspaceId',
     isLoggedIn,
-    hasAdminPerms,
+    hasPermission('MANAGE:WORKSPACE'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const { name } = req.body
@@ -98,7 +106,7 @@ router.patch(
 router.delete(
     '/:workspaceId',
     isLoggedIn,
-    hasPermission('MANAGE:USER'),
+    hasPermission('MANAGE:IS_WORKSPACE_OWNER'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
 

@@ -548,7 +548,7 @@ router.delete(
         const user = await User.findById(req.user._id).populate('refreshTokens')
 
         user.refreshTokens = user.refreshTokens.filter(
-            session => session._id != sessionId
+            session => session._id.toString() !== sessionId
         )
 
         await user.save()

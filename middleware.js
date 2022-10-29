@@ -34,9 +34,10 @@ module.exports.hasPermission = permission => {
             })
             if (hasPerms(board.workspace, req.user, permission)) return next()
         } else if (workspaceId) {
-            const workspace = await Workspace.findById(workspaceId).populate({
-                path: ['roles', 'members.role']
-            })
+            const workspace = await Workspace.findById(workspaceId).populate([
+                'roles',
+                'members.role'
+            ])
             if (hasPerms(workspace, req.user, permission)) return next()
         }
 
