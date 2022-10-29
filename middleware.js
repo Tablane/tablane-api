@@ -3,6 +3,7 @@ const Workspace = require('./models/workspace')
 const { verify } = require('jsonwebtoken')
 const AppError = require('./HttpError')
 const User = require('./models/user')
+const PermissionError = require('./PermissionError')
 
 const wrapAsync = func => {
     return async (req, res, next) => {
@@ -14,12 +15,33 @@ const wrapAsync = func => {
     }
 }
 
-module.exports.hasPerms = (workspace, user, permission) => {
+const hasPerms = (workspace, user, permission) => {
     const member = workspace.members.find(
         x => x.user.toString() === user._id.toString()
     )
     if (member.isOwner) return true
     return member.role.permissions.includes(permission)
+}
+
+module.exports.hasPermission = permission => {
+    return wrapAsync(async (req, res, next) => {
+        const { boardId, workspaceId } = req.params
+
+        if (boardId) {
+            const board = await Board.findById(boardId).populate({
+                path: 'workspace',
+                populate: ['roles', 'members.role']
+            })
+            if (hasPerms(board.workspace, req.user, permission)) return next()
+        } else if (workspaceId) {
+            const workspace = await Workspace.findById(workspaceId).populate({
+                path: ['roles', 'members.role']
+            })
+            if (hasPerms(workspace, req.user, permission)) return next()
+        }
+
+        throw new PermissionError(permission)
+    })
 }
 
 const checkPerms = async req => {
@@ -110,4 +132,5 @@ module.exports.hasReadPerms = wrapAsync(async (req, res, next) => {
     else res.status(403).send('Forbidden - no read perms')
 })
 
+module.exports.hasPerms = hasPerms
 module.exports.wrapAsync = wrapAsync

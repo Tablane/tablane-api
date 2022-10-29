@@ -5,14 +5,15 @@ const Space = require('../models/space')
 const {
     wrapAsync,
     isLoggedIn,
-    hasReadPerms,
-    hasWritePerms
+    hasWritePerms,
+    hasPermission
 } = require('../middleware')
 
 // get board info
 router.get(
     '/:boardId',
     isLoggedIn,
+    hasPermission('READ:PUBLIC'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const board = await Board.findById(boardId).populate({

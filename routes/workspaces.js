@@ -4,9 +4,8 @@ const User = require('../models/user')
 const {
     wrapAsync,
     isLoggedIn,
-    hasWorkspacePerms,
-    hasReadPerms,
-    hasAdminPerms
+    hasAdminPerms,
+    hasPermission
 } = require('../middleware')
 
 // create a new workspace
@@ -99,7 +98,7 @@ router.patch(
 router.delete(
     '/:workspaceId',
     isLoggedIn,
-    hasAdminPerms,
+    hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
 
@@ -113,7 +112,7 @@ router.delete(
 router.post(
     '/user/:workspaceId',
     isLoggedIn,
-    hasAdminPerms,
+    hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const { email, role } = req.body
@@ -148,7 +147,7 @@ router.post(
 router.delete(
     '/user/:workspaceId/:userId',
     isLoggedIn,
-    hasAdminPerms,
+    hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId, userId } = req.params
         const workspace = await Workspace.findById(workspaceId)
@@ -190,7 +189,7 @@ router.delete(
 router.patch(
     '/user/:workspaceId/:userId',
     isLoggedIn,
-    hasAdminPerms,
+    hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId, userId } = req.params
         const { role } = req.body
@@ -213,6 +212,8 @@ router.patch(
 // change permission for roles
 router.patch(
     '/permission/:workspaceId/:roleId',
+    isLoggedIn,
+    hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
         const { workspaceId, roleId } = req.params
         const { key } = req.body
