@@ -5,7 +5,8 @@ const Notification = require('../models/notification')
 // get notifications
 router.post(
     '/:workspaceId',
-    wrapAsync(async (req, res, next) => {
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const { condition } = req.body
         const notifications = await Notification.find({
@@ -38,7 +39,7 @@ router.post(
 // create notification
 router.post(
     '/:workspaceId/:taskId',
-    wrapAsync(async (req, res, next) => {
+    wrapAsync(async (req, res) => {
         const { workspaceId, taskId } = req.params
         const { change_type } = req.body
         const notification = new Notification({
