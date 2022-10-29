@@ -25,17 +25,12 @@ const {
 router.get(
     '/logout',
     wrapAsync(async (req, res) => {
-        const sessionId = req.session.id
-        const io = req.app.get('socketio')
-
-        // req.session.destroy(() => {
-        //     io.to(sessionId).disconnectSockets()
-        //     res.status(204).end()
-        // })
-        //
-        // req.logout()
-
-        res.clearCookie('refresh_token')
+        res.clearCookie('refresh_token', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'Strict',
+            path: '/api/user/refresh'
+        })
         res.json({ success: true, message: 'OK' })
     })
 )
