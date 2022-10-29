@@ -152,7 +152,6 @@ router.post(
 router.patch(
     '/:boardId',
     isLoggedIn,
-    hasPermission('MANAGE:SHARING'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { name, groupBy } = req.body
@@ -177,7 +176,7 @@ router.patch(
         }
         if (groupBy) {
             if (!hasPerms(board.workspace, req.user, 'MANAGE:VIEW'))
-                throw new PermissionError('MANAGE:SHARING')
+                throw new PermissionError('MANAGE:VIEW')
             board.groupBy = groupBy
 
             const io = req.app.get('socketio')
