@@ -1,10 +1,9 @@
-const passport = require('passport')
 const User = require('./../models/user')
 const RefreshToken = require('./../models/refreshToken')
 const router = require('express').Router()
 const bcrypt = require('bcrypt')
 const { wrapAsync, isLoggedIn, isSudoMode } = require('../middleware')
-const { verify, sign } = require('jsonwebtoken')
+const { verify } = require('jsonwebtoken')
 const AppError = require('../HttpError')
 const {
     createAccessToken,
