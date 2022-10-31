@@ -282,7 +282,7 @@ router.post(
             text
         }
 
-        task.history.push(comment)
+        task.history.unshift(comment)
 
         const io = req.app.get('socketio')
         io.to(boardId)
