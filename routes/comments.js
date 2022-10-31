@@ -162,15 +162,15 @@ router.delete(
 
 // edit reply
 router.put(
-    '/reply/:taskId/:commentId/:replyId',
+    '/reply/:taskId/:replyId',
     isLoggedIn,
     hasPermission('CREATE:COMMENT'),
     wrapAsync(async (req, res) => {
-        const { commentId } = req.params
+        const { replyId } = req.params
         const { content } = req.body
-        const comment = await Comment.findById(commentId)
+        const reply = await Comment.findById(replyId)
 
-        comment.content = content
+        reply.content = content
 
         // const io = req.app.get('socketio')
         // io.to(boardId)
@@ -181,7 +181,7 @@ router.put(
         //         body: { text, author: req.user.username, taskId }
         //     })
 
-        await comment.save()
+        await reply.save()
         res.json({ success: true, message: 'OK' })
     })
 )
