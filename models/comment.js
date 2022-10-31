@@ -11,7 +11,13 @@ const commentSchema = new Schema({
     task: {
         type: Schema.Types.ObjectId,
         ref: 'Task'
-    }
+    },
+    replies: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Comment'
+        }
+    ]
 })
 
 module.exports = model('Comment', commentSchema)
