@@ -54,6 +54,8 @@ router.delete(
             return x.toString() !== commentId
         })
 
+        await Comment.deleteMany({ _id: { $in: comment.replies } })
+
         // const io = req.app.get('socketio')
         // io.to(boardId)
         //     .except(req.user._id.toString())
