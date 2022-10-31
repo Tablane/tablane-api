@@ -9,7 +9,12 @@ const taskSchema = new mongoose.Schema({
             value: Schema.Types.Mixed
         }
     ],
-    history: [],
+    history: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Comment'
+        }
+    ],
     description: String,
     board: {
         type: Schema.Types.ObjectId,

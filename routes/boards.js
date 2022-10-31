@@ -19,10 +19,15 @@ router.get(
         const { boardId } = req.params
         const board = await Board.findById(boardId).populate({
             path: 'tasks',
-            populate: {
-                path: 'watcher',
-                select: 'username'
-            }
+            populate: [
+                {
+                    path: 'watcher',
+                    select: 'username'
+                },
+                {
+                    path: 'history'
+                }
+            ]
         })
 
         res.json(board)

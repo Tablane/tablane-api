@@ -200,12 +200,12 @@ router.post(
             watcher: [],
             workspace: board.workspace,
             history: [
-                {
-                    type: 'activity',
-                    author: req.user.username,
-                    text: 'created this task',
-                    timestamp: new Date().getTime()
-                }
+                // {
+                //     type: 'activity',
+                //     author: req.user.username,
+                //     text: 'created this task',
+                //     timestamp: new Date().getTime()
+                // }
             ]
         })
 
@@ -260,41 +260,6 @@ router.delete(
 
         await board.save()
         await Task.findByIdAndDelete(taskId)
-        res.json({ success: true, message: 'OK' })
-    })
-)
-
-// add new comment to Task
-router.post(
-    '/:boardId/:taskId',
-    isLoggedIn,
-    hasPermission('CREATE:COMMENT'),
-    wrapAsync(async (req, res) => {
-        const { boardId, taskId } = req.params
-        const { text } = req.body
-        const board = await Board.findById(boardId).populate('tasks')
-        const task = board.tasks.find(task => task._id.toString() === taskId)
-
-        const comment = {
-            type: 'comment',
-            author: req.user.username,
-            timestamp: new Date().getTime(),
-            text
-        }
-
-        task.history.unshift(comment)
-
-        const io = req.app.get('socketio')
-        io.to(boardId)
-            .except(req.user._id.toString())
-            .emit(boardId, {
-                event: 'addTaskComment',
-                id: boardId,
-                body: { text, author: req.user.username, taskId }
-            })
-
-        await task.save()
-        await board.save()
         res.json({ success: true, message: 'OK' })
     })
 )

@@ -13,6 +13,7 @@ const tasks = require('./routes/tasks')
 const attributes = require('./routes/attributes')
 const notification = require('./routes/notifications')
 const roles = require('./routes/roles')
+const comments = require('./routes/comments')
 const http = require('http').createServer(app)
 const { Server } = require('socket.io')
 const jwt = require('jsonwebtoken')
@@ -44,6 +45,7 @@ app.use('/api/task', tasks)
 app.use('/api/attribute', attributes)
 app.use('/api/notification', notification)
 app.use('/api/role', roles)
+app.use('/api/comment', comments)
 
 io.on('connect', socket => {
     socket.on('token', payload => {
