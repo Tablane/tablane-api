@@ -137,13 +137,13 @@ router.delete(
     isLoggedIn,
     hasPermission('CREATE:COMMENT'),
     wrapAsync(async (req, res) => {
-        const { commentId } = req.params
-        const comment = await Comment.findByIdAndRemove(commentId).populate(
-            'task'
-        )
+        const { commentId, replyId } = req.params
+        await Comment.findByIdAndRemove(replyId)
+        const comment = await Comment.findById(commentId)
 
-        comment.task.history = comment.task.history.filter(x => {
-            return x.toString() !== commentId
+        comment.replies = comment.replies.filter(x => {
+            console.log(x.toString() !== replyId)
+            return x.toString() !== replyId
         })
 
         // const io = req.app.get('socketio')
@@ -155,7 +155,7 @@ router.delete(
         //         body: { text, author: req.user.username, taskId }
         //     })
 
-        await comment.task.save()
+        await comment.save()
         res.json({ success: true, message: 'OK' })
     })
 )
