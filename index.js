@@ -87,6 +87,7 @@ io.on('connect', socket => {
 
 app.use((err, req, res, next) => {
     const { status = 500, message = 'Internal Server Error' } = err
+    console.log(err)
     res.status(status).json({
         success: false,
         message
