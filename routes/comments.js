@@ -107,7 +107,7 @@ router.post(
         const comment = await Comment.findById(commentId)
 
         const reply = new Comment({
-            type: 'comment',
+            type: 'reply',
             author: req.user,
             timestamp: new Date().getTime(),
             content,
@@ -141,10 +141,7 @@ router.delete(
         await Comment.findByIdAndRemove(replyId)
         const comment = await Comment.findById(commentId)
 
-        comment.replies = comment.replies.filter(x => {
-            console.log(x.toString() !== replyId)
-            return x.toString() !== replyId
-        })
+        comment.replies = comment.replies.filter(x => x.toString() !== replyId)
 
         // const io = req.app.get('socketio')
         // io.to(boardId)
