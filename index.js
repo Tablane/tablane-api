@@ -17,6 +17,8 @@ const comments = require('./routes/comments')
 const http = require('http').createServer(app)
 const { Server } = require('socket.io')
 const jwt = require('jsonwebtoken')
+const { Server: hocuspocus } = require('@hocuspocus/server')
+const { RocksDB } = require('@hocuspocus/extension-rocksdb')
 
 dotenv.config()
 mongoose.connect(process.env.DB_CONNECT, {}, () =>
@@ -104,3 +106,14 @@ app.use((err, req, res, next) => {
 http.listen(process.env.PORT || 3001, () => {
     console.log(`Listening on port ${process.env.PORT || 3001}`)
 })
+
+const instance = hocuspocus.configure({
+    port: 3002,
+    async onListen(data) {
+        console.log(`Hocuspocus listening on port ${data.port}`)
+    },
+
+    // Order matters!
+    extensions: [new RocksDB({ path: './database' })]
+})
+instance.listen()
