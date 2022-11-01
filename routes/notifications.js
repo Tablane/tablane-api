@@ -1,6 +1,7 @@
 const { isLoggedIn, wrapAsync } = require('../middleware')
 const router = require('express').Router()
 const Notification = require('../models/notification')
+const AppError = require('../HttpError')
 
 // get notifications
 router.post(
@@ -40,10 +41,7 @@ router.post(
 router.post(
     '/:workspaceId/:taskId',
     wrapAsync(async (req, res) => {
-        return res.json({
-            success: false,
-            message: 'This route is not available in production'
-        })
+        throw new AppError('This route is not available in production', 400)
         const { workspaceId, taskId } = req.params
         const { change_type } = req.body
         const notification = new Notification({

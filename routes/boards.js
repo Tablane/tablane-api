@@ -110,8 +110,7 @@ router.patch(
 
         await source.save()
         await destination.save()
-        res.json({ source, destination })
-        // res.json({ success: true, message: 'OK' })
+        res.json({ success: true, message: 'OK' })
     })
 )
 

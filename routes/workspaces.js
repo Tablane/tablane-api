@@ -8,6 +8,7 @@ const {
     hasPerms
 } = require('../middleware')
 const PermissionError = require('../PermissionError')
+const AppError = require('../HttpError')
 
 // create a new workspace
 router.post(
@@ -128,14 +129,12 @@ router.post(
         const user = await User.findOne({ email })
 
         if (!user)
-            return res.status(400).json({
-                success: false,
-                message: 'User does not exist'
+            throw new AppError('User does not exist', 400, {
+                friendlyError: true
             })
         if (user.workspaces.includes(workspaceId))
-            return res.status(400).json({
-                success: false,
-                message: 'User already invited'
+            throw new AppError('User already invited', 400, {
+                friendlyError: true
             })
 
         workspace.members.push({
@@ -162,9 +161,8 @@ router.delete(
         const user = await User.findById(userId)
 
         if (!user)
-            return res.status(422).json({
-                success: false,
-                message: 'User does not exist'
+            throw new AppError('User does not exist', 422, {
+                friendlyError: true
             })
 
         const memberIndex = workspace.members.findIndex(
@@ -175,10 +173,7 @@ router.delete(
         )
 
         if (workspace.members[memberIndex].role === 'owner')
-            return res.status(403).json({
-                success: false,
-                message: 'Forbidden'
-            })
+            throw new AppError('Forbidden', 403)
 
         if (memberIndex > -1) {
             workspace.members.splice(memberIndex, 1)
@@ -205,10 +200,7 @@ router.patch(
 
         const user = workspace.members.find(x => x.user.toString() === userId)
         if (role === 'owner' || user.role === 'owner')
-            return res.status(403).json({
-                success: false,
-                message: 'Forbidden'
-            })
+            throw new AppError('Forbidden', 403)
         workspace.members.find(x => x.user.toString() === userId).role =
             role.toLowerCase()
 

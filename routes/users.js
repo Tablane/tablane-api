@@ -162,7 +162,10 @@ router.post(
                     }
                 ]
             })
-        if (!user) throw new AppError('User does not exist', 400)
+        if (!user)
+            throw new AppError('User does not exist', 400, {
+                friendlyError: true
+            })
 
         if (!password)
             return res.json({
@@ -170,9 +173,11 @@ router.post(
                 nextStep: 'password'
             })
 
-        if (!user.password) throw new AppError('Invalid password', 400)
+        if (!user.password)
+            throw new AppError('Invalid password', 400, { friendlyError: true })
         const valid = await bcrypt.compareSync(password, user.password)
-        if (!valid) throw new AppError('Invalid password', 400)
+        if (!valid)
+            throw new AppError('Invalid password', 400, { friendlyError: true })
 
         if (user.multiFactorAuth) {
             const totpMethod = user.multiFactorMethods.find(
@@ -499,15 +504,6 @@ router.post(
     })
 )
 
-router.get(
-    '/profile',
-    isLoggedIn,
-    wrapAsync(async (req, res) => {
-        const user = await User.findById(req.user._id)
-        res.json({ success: true, message: 'OK' })
-    })
-)
-
 router.patch(
     '/profile',
     isLoggedIn,
@@ -573,9 +569,7 @@ router.post(
                 user.multiFactorMethods.totp.secret
             )
             if (!isValid)
-                return res
-                    .status(400)
-                    .json({ success: false, message: 'Invalid Code' })
+                throw new AppError('Invalid Code', 400, { friendlyError: true })
             user.multiFactorMethods.totp.enabled = true
         } else {
             const secret = authenticator.generateSecret()

@@ -81,9 +81,10 @@ module.exports.isSudoMode = wrapAsync(async (req, res, next) => {
         const token = authorization.split(' ')[1]
         const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
         const hasSudoMode = payload.user.sudoMode
-        if (!hasSudoMode) throw new AppError('sudo mode required', 403)
+        if (!hasSudoMode)
+            throw new AppError('sudo mode required', 403, { silentError: true })
     } catch (err) {
-        throw new AppError('sudo mode required', 403)
+        throw new AppError('sudo mode required', 403, { silentError: true })
     }
     next()
 })
