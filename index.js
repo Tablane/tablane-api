@@ -113,22 +113,28 @@ const instance = hocuspocus.configure({
     async onListen(data) {
         console.log(`Hocuspocus listening on port ${data.port}`)
     },
-
     extensions: [
         new Database({
-            fetch: x =>
-                new Promise((resolve, reject) => {
-                    setTimeout(async () => {
-                        const task = await Task.findById(x.documentName)
-                        resolve(new Uint8Array(task?.description || [0, 0]))
-                    }, 300)
-                }),
-            store: async x => {
-                if (!x.documentName || !x.state) return
-                const task = await Task.findById(x.documentName)
-                if (!task) return
-                task.description = x.state || [0, 0]
-                task.save()
+            fetch: async ({ documentName }) => {
+                try {
+                    const task = await Task.findById(documentName)
+                    if (task.description.length === 0) return undefined
+                    return new Uint8Array(task.description)
+                } catch (err) {
+                    console.log(err)
+                }
+            },
+            store: async ({ documentName, state }) => {
+                console.log('storing...')
+                try {
+                    if (!documentName || !state) return
+                    const task = await Task.findById(documentName)
+                    if (!task) return
+                    task.description = state
+                    task.save()
+                } catch (err) {
+                    console.log(err)
+                }
             }
         })
     ]
