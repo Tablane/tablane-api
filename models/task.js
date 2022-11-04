@@ -15,7 +15,7 @@ const taskSchema = new mongoose.Schema({
             ref: 'Comment'
         }
     ],
-    description: String,
+    description: Buffer,
     board: {
         type: Schema.Types.ObjectId,
         ref: 'Board'

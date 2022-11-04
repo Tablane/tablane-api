@@ -18,7 +18,8 @@ const http = require('http').createServer(app)
 const { Server } = require('socket.io')
 const jwt = require('jsonwebtoken')
 const { Server: hocuspocus } = require('@hocuspocus/server')
-const { RocksDB } = require('@hocuspocus/extension-rocksdb')
+const { Database } = require('@hocuspocus/extension-database')
+const Task = require('./models/task')
 
 dotenv.config()
 mongoose.connect(process.env.DB_CONNECT, {}, () =>
@@ -113,7 +114,23 @@ const instance = hocuspocus.configure({
         console.log(`Hocuspocus listening on port ${data.port}`)
     },
 
-    // Order matters!
-    extensions: [new RocksDB({ path: './database' })]
+    extensions: [
+        new Database({
+            fetch: x =>
+                new Promise((resolve, reject) => {
+                    setTimeout(async () => {
+                        const task = await Task.findById(x.documentName)
+                        resolve(new Uint8Array(task?.description || [0, 0]))
+                    }, 300)
+                }),
+            store: async x => {
+                if (!x.documentName || !x.state) return
+                const task = await Task.findById(x.documentName)
+                if (!task) return
+                task.description = x.state || [0, 0]
+                task.save()
+            }
+        })
+    ]
 })
 instance.listen()

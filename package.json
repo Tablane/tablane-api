@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hocuspocus/extension-rocksdb": "^1.0.0-alpha.105",
+    "@hocuspocus/extension-database": "^1.0.0-beta.3",
     "@hocuspocus/server": "^1.0.0-beta.2",
     "@simplewebauthn/server": "^6.3.0-alpha.1",
     "axios": "^1.1.3",
