@@ -295,20 +295,37 @@ router.delete(
     hasPermission('DELETE:TASK'),
     wrapAsync(async (req, res) => {
         const { boardId, taskId } = req.params
-        const board = await Board.findById(boardId).populate('tasks')
+        const task = await Task.findById(taskId).populate([
+            'board',
+            'parentTask'
+        ])
 
-        const task = board.tasks.find(x => x._id.toString() === taskId)
-        const taskIndex = board.tasks.indexOf(task)
-        board.tasks.splice(taskIndex, 1)
+        if (task.level === 0) {
+            const taskIndex = task.board.tasks.indexOf(task)
+            task.board.tasks.splice(taskIndex, 1)
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
-            event: 'deleteTask',
-            id: boardId,
-            body: { taskId }
-        })
+            const io = req.app.get('socketio')
+            io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+                event: 'deleteTask',
+                id: boardId,
+                body: { taskId }
+            })
 
-        await board.save()
+            await task.board.save()
+        } else {
+            const taskIndex = task.parentTask.subtasks.indexOf(task)
+            task.parentTask.subtasks.splice(taskIndex, 1)
+
+            // const io = req.app.get('socketio')
+            // io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            //     event: 'deleteTask',
+            //     id: boardId,
+            //     body: { taskId }
+            // })
+
+            await task.parentTask.save()
+        }
+
         await Task.findByIdAndDelete(taskId)
         res.json({ success: true, message: 'OK' })
     })
