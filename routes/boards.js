@@ -27,6 +27,30 @@ router.get(
                 {
                     path: 'history',
                     populate: 'replies'
+                },
+                {
+                    path: 'subtasks',
+                    populate: {
+                        path: 'subtasks',
+                        populate: {
+                            path: 'subtasks',
+                            populate: {
+                                path: 'subtasks',
+                                populate: {
+                                    path: 'subtasks',
+                                    populate: {
+                                        path: 'subtasks',
+                                        populate: {
+                                            path: 'subtasks',
+                                            populate: {
+                                                path: 'subtasks'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             ]
         })

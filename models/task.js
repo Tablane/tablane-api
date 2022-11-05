@@ -24,6 +24,20 @@ const taskSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'Workspace'
     },
+    subtasks: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Task'
+        }
+    ],
+    parentTask: {
+        type: Schema.Types.ObjectId,
+        ref: 'Task'
+    },
+    level: {
+        type: Number,
+        default: 0
+    },
     watcher: [
         {
             type: Schema.Types.ObjectId,

@@ -66,8 +66,7 @@ router.patch(
     wrapAsync(async (req, res) => {
         const { boardId, taskId } = req.params
         const { column, value, type } = req.body
-        const board = await Board.findById(boardId).populate('tasks')
-        const task = board.tasks.find(x => x._id.toString() === taskId)
+        const task = await Task.findById(taskId)
 
         // edit name
         if (type === 'name') {
@@ -109,8 +108,7 @@ router.delete(
     hasPermission('MANAGE:TASK'),
     wrapAsync(async (req, res) => {
         const { boardId, taskId, optionId } = req.params
-        const board = await Board.findById(boardId).populate('tasks')
-        const task = board.tasks.find(x => x._id.toString() === taskId)
+        const task = await Task.findById(taskId)
 
         const options = task.options
         const optionIndex = options.indexOf(
@@ -126,6 +124,58 @@ router.delete(
         })
 
         await task.save()
+        res.json({ success: true, message: 'OK' })
+    })
+)
+
+// add subtask to task
+router.post(
+    '/:boardId/:taskId',
+    isLoggedIn,
+    hasPermission('MANAGE:TASK'),
+    wrapAsync(async (req, res) => {
+        const { boardId, taskId } = req.params
+        const { name, taskGroupId, _id } = req.body
+        const task = await Task.findById(taskId)
+
+        const subtask = new Task({
+            _id,
+            name,
+            options: [],
+            board: task.board,
+            description: '',
+            watcher: [],
+            workspace: task.workspace,
+            parentTask: task,
+            level: task.level + 1,
+            history: [
+                // {
+                //     type: 'activity',
+                //     author: req.user.username,
+                //     text: 'created this task',
+                //     timestamp: new Date().getTime()
+                // }
+            ]
+        })
+
+        task.subtasks.push(subtask)
+
+        // const io = req.app.get('socketio')
+        // io.to(boardId)
+        //     .except(req.user._id.toString())
+        //     .emit(boardId, {
+        //         event: 'addTask',
+        //         id: boardId,
+        //         body: {
+        //             newTaskName: name,
+        //             taskGroupId,
+        //             _id,
+        //             author: req.user.username
+        //         }
+        //     })
+
+        await task.save()
+        await subtask.save()
         res.json({ success: true, message: 'OK' })
     })
 )
