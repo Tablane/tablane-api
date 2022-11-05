@@ -125,7 +125,6 @@ const instance = hocuspocus.configure({
                 }
             },
             store: async ({ documentName, state }) => {
-                console.log('storing...')
                 try {
                     if (!documentName || !state) return
                     const task = await Task.findById(documentName)
