@@ -28,7 +28,8 @@ mongoose.connect(process.env.DB_CONNECT, {}, () =>
 
 const corsOptions = {
     origin: [process.env.FRONTEND_HOST],
-    credentials: true
+    credentials: true,
+    maxAge: 86400
 }
 const io = new Server(http, { cors: corsOptions })
 
