@@ -276,7 +276,6 @@ router.get(
             ]
         })
 
-        console.log(board)
         if (!board.sharing) return res.status(403).send('Forbidden')
         res.json(board)
     })
