@@ -151,14 +151,134 @@ router.get(
     '/share/:boardId',
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
-        let board = await Board.findById(boardId).populate('tasks')
-
-        if (!board.sharing) return res.status(403).send('Forbidden')
-        res.json({
-            name: board.name,
-            attributes: board.attributes,
-            taskGroups: board.taskGroups
+        const board = await Board.findById(boardId).populate({
+            path: 'tasks',
+            populate: [
+                {
+                    path: 'watcher',
+                    select: 'username'
+                },
+                {
+                    path: 'history'
+                },
+                {
+                    path: 'comments',
+                    populate: 'replies'
+                },
+                {
+                    path: 'subtasks',
+                    populate: [
+                        {
+                            path: 'subtasks',
+                            populate: [
+                                {
+                                    path: 'subtasks',
+                                    populate: [
+                                        {
+                                            path: 'subtasks',
+                                            populate: [
+                                                {
+                                                    path: 'subtasks',
+                                                    populate: [
+                                                        {
+                                                            path: 'subtasks',
+                                                            populate: [
+                                                                {
+                                                                    path: 'subtasks',
+                                                                    populate: [
+                                                                        {
+                                                                            path: 'subtasks',
+                                                                            populate:
+                                                                                [
+                                                                                    {
+                                                                                        path: 'watcher',
+                                                                                        select: 'username'
+                                                                                    },
+                                                                                    {
+                                                                                        path: 'history',
+                                                                                        populate:
+                                                                                            'replies'
+                                                                                    }
+                                                                                ]
+                                                                        },
+                                                                        {
+                                                                            path: 'watcher',
+                                                                            select: 'username'
+                                                                        },
+                                                                        {
+                                                                            path: 'history',
+                                                                            populate:
+                                                                                'replies'
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    path: 'watcher',
+                                                                    select: 'username'
+                                                                },
+                                                                {
+                                                                    path: 'history',
+                                                                    populate:
+                                                                        'replies'
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            path: 'watcher',
+                                                            select: 'username'
+                                                        },
+                                                        {
+                                                            path: 'history',
+                                                            populate: 'replies'
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    path: 'watcher',
+                                                    select: 'username'
+                                                },
+                                                {
+                                                    path: 'history',
+                                                    populate: 'replies'
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            path: 'watcher',
+                                            select: 'username'
+                                        },
+                                        {
+                                            path: 'history',
+                                            populate: 'replies'
+                                        }
+                                    ]
+                                },
+                                {
+                                    path: 'watcher',
+                                    select: 'username'
+                                },
+                                {
+                                    path: 'history',
+                                    populate: 'replies'
+                                }
+                            ]
+                        },
+                        {
+                            path: 'watcher',
+                            select: 'username'
+                        },
+                        {
+                            path: 'history',
+                            populate: 'replies'
+                        }
+                    ]
+                }
+            ]
         })
+
+        console.log(board)
+        if (!board.sharing) return res.status(403).send('Forbidden')
+        res.json(board)
     })
 )
 
