@@ -22,7 +22,7 @@ router.post(
             replies: []
         })
 
-        task.history.unshift(comment)
+        task.comments.unshift(comment)
 
         // const io = req.app.get('socketio')
         // io.to(boardId)
@@ -50,7 +50,7 @@ router.delete(
             'task'
         )
 
-        comment.task.history = comment.task.history.filter(x => {
+        comment.task.comments = comment.task.comments.filter(x => {
             return x.toString() !== commentId
         })
 
