@@ -6,10 +6,7 @@ const activitySchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    change: {
-        type: { type: String },
-        field: String
-    },
+    change: Object,
     timestamp: String,
     task: {
         type: Schema.Types.ObjectId,

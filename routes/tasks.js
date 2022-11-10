@@ -4,6 +4,7 @@ const Task = require('../models/task')
 const User = require('../models/user')
 const Board = require('../models/board')
 const Activity = require('../models/activity')
+const { addActivity } = require('../controllers/activities')
 
 // add new watcher to task
 router.post(
@@ -71,6 +72,11 @@ router.patch(
 
         // edit name
         if (type === 'name') {
+            await addActivity(task, req.user, {
+                type: 'name',
+                from: task.name,
+                to: value
+            })
             task.name = value
         } else if (type === 'description') {
             task.description = value
