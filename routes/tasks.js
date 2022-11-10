@@ -3,6 +3,7 @@ const { wrapAsync, isLoggedIn, hasPermission } = require('../middleware')
 const Task = require('../models/task')
 const User = require('../models/user')
 const Board = require('../models/board')
+const Activity = require('../models/activity')
 
 // add new watcher to task
 router.post(
@@ -241,6 +242,15 @@ router.post(
             'workspace'
         ])
 
+        const newTaskActivity = new Activity({
+            type: 'activity',
+            author: req.user,
+            timestamp: new Date().getTime(),
+            change: {
+                type: 'creation'
+            }
+        })
+
         const task = new Task({
             _id,
             name,
@@ -249,15 +259,11 @@ router.post(
             description: '',
             watcher: [],
             workspace: board.workspace,
-            history: [
-                // {
-                //     type: 'activity',
-                //     author: req.user.username,
-                //     text: 'created this task',
-                //     timestamp: new Date().getTime()
-                // }
-            ]
+            comments: [],
+            history: [newTaskActivity]
         })
+
+        newTaskActivity.task = task
 
         if (board.groupBy) {
             task.options.push({
@@ -284,6 +290,7 @@ router.post(
 
         await task.save()
         await board.save()
+        await newTaskActivity.save()
         res.json({ success: true, message: 'OK' })
     })
 )

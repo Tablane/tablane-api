@@ -25,7 +25,10 @@ router.get(
                     select: 'username'
                 },
                 {
-                    path: 'history',
+                    path: 'history'
+                },
+                {
+                    path: 'comments',
                     populate: 'replies'
                 },
                 {

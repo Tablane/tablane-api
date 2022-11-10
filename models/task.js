@@ -9,10 +9,16 @@ const taskSchema = new mongoose.Schema({
             value: Schema.Types.Mixed
         }
     ],
-    history: [
+    comments: [
         {
             type: Schema.Types.ObjectId,
             ref: 'Comment'
+        }
+    ],
+    history: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Activity'
         }
     ],
     description: Buffer,
