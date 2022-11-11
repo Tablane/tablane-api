@@ -9,6 +9,7 @@ const {
 } = require('../middleware')
 const PermissionError = require('../PermissionError')
 const AppError = require('../HttpError')
+const Role = require('../models/role')
 
 // create a new workspace
 router.post(
@@ -29,10 +30,45 @@ router.post(
             else break
         }
 
+        const adminRole = new Role({
+            name: 'Admin',
+            permissions: [
+                'READ:PUBLIC',
+                'CREATE:TASK',
+                'DELETE:TASK',
+                'MANAGE:COLUMN_VALUE',
+                'MANAGE:BOARD',
+                'MANAGE:SPACE',
+                'MANAGE:COLUMN',
+                'MANAGE:MEMBER',
+                'MANAGE:WORKSPACE',
+                'MANAGE:TASK',
+                'CREATE:COMMENT',
+                'MANAGE:SHARING',
+                'MANAGE:VIEW'
+            ]
+        })
+
+        const memberRole = new Role({
+            name: 'Member',
+            permissions: [
+                'READ:PUBLIC',
+                'CREATE:TASK',
+                'CREATE:COMMENT',
+                'MANAGE:TASK'
+            ]
+        })
+
+        const guestRole = new Role({
+            name: 'Guest',
+            permissions: ['READ:PUBLIC']
+        })
+
         const workspace = new Workspace({
             id: id,
             spaces: [],
             name: name,
+            roles: [adminRole, memberRole, guestRole],
             members: [
                 {
                     labels: [],
@@ -46,6 +82,9 @@ router.post(
 
         await user.save()
         await workspace.save()
+        await adminRole.save()
+        await memberRole.save()
+        await guestRole.save()
         res.json({ success: true, id })
     })
 )

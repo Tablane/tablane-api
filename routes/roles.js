@@ -4,6 +4,7 @@ const Space = require('../models/space')
 const Board = require('../models/board')
 const Role = require('../models/role')
 const { wrapAsync, isLoggedIn, hasPermission } = require('../middleware')
+const AppError = require('../HttpError')
 
 // create new role
 router.post(
@@ -11,6 +12,7 @@ router.post(
     isLoggedIn,
     hasPermission('MANAGE:USER'),
     wrapAsync(async (req, res) => {
+        throw new AppError('This route is not available in production', 400)
         const { workspaceId } = req.params
         const { name, _id } = req.body
         const workspace = await Workspace.findById(workspaceId)
