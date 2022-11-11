@@ -19,6 +19,7 @@ router.post(
         const user = await User.findById(userId)
 
         task.watcher.addToSet(userId)
+        await addActivity(task, req.user, { type: 'add_watcher' }, userId)
 
         const io = req.app.get('socketio')
         io.to(task.board.toString())
@@ -46,6 +47,7 @@ router.delete(
         const user = await User.findById(userId)
 
         task.watcher.remove(userId)
+        await addActivity(task, req.user, { type: 'remove_watcher' }, userId)
 
         const io = req.app.get('socketio')
         io.to(task.board.toString())

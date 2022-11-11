@@ -1,11 +1,12 @@
 const Activity = require('../models/activity')
 
-module.exports.addActivity = async (task, user, change) => {
+module.exports.addActivity = async (task, user, change, referencedUser) => {
     const activity = new Activity({
         type: 'activity',
         author: user,
         timestamp: new Date().getTime(),
-        change
+        change,
+        referencedUser: referencedUser || null
     })
     await activity.save()
 

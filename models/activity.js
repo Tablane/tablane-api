@@ -8,6 +8,10 @@ const activitySchema = new Schema({
     },
     change: Object,
     timestamp: String,
+    referencedUser: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+    },
     task: {
         type: Schema.Types.ObjectId,
         ref: 'Task'
