@@ -91,6 +91,12 @@ router.patch(
         const option = options.find(x => x.column.toString() === column)
 
         if (type === 'status') {
+            await addActivity(task, req.user, {
+                type: 'attribute',
+                field: column,
+                from: option?.value,
+                to: value
+            })
             if (option) option.value = value
             else options.push({ column, value })
         } else if (type === 'text') {
