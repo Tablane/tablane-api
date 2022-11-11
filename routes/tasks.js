@@ -263,7 +263,7 @@ router.post(
             options: [],
             board: board,
             description: '',
-            watcher: [],
+            watcher: [req.user],
             workspace: board.workspace,
             comments: [],
             history: [newTaskActivity]
