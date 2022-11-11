@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/
     },
-    newNotifications: Number,
+    newNotifications: [{ workspace: Schema.Types.ObjectId, amount: Number }],
     assignedTasks: [
         {
             type: Schema.Types.ObjectId,

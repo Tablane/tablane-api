@@ -12,7 +12,7 @@ router.post(
         const { condition } = req.body
         const notifications = await Notification.find({
             workspace: workspaceId,
-            notificationOwner: req.user._id,
+            user: req.user._id,
             ...condition
         })
             .sort({ $natural: -1 })
@@ -40,6 +40,7 @@ router.post(
 // create notification
 router.post(
     '/:workspaceId/:taskId',
+    isLoggedIn,
     wrapAsync(async (req, res) => {
         throw new AppError('This route is not available in production', 400)
         const { workspaceId, taskId } = req.params
