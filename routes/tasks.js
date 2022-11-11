@@ -151,7 +151,7 @@ router.post(
             options: [],
             board: task.board,
             description: '',
-            watcher: [],
+            watcher: task.watcher,
             workspace: task.workspace,
             parentTask: task,
             level: task.level + 1,
@@ -164,6 +164,11 @@ router.post(
                 // }
             ]
         })
+
+        // only add author if not duplicated
+        if (subtask.watcher.indexOf(req.user._id) === -1) {
+            subtask.watcher.push(req.user)
+        }
 
         task.subtasks.push(subtask)
 
