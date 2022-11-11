@@ -2,6 +2,7 @@ const router = require('express').Router()
 const { isLoggedIn, hasPermission, wrapAsync } = require('../middleware')
 const Task = require('../models/task')
 const Comment = require('../models/comment')
+const { addWatcher } = require('../utils/addWatcher')
 
 // add new comment to Task
 router.post(
@@ -12,6 +13,8 @@ router.post(
         const { taskId } = req.params
         const { content } = req.body
         const task = await Task.findById(taskId)
+
+        addWatcher(task, req.user)
 
         const comment = new Comment({
             type: 'comment',
@@ -104,7 +107,12 @@ router.post(
     wrapAsync(async (req, res) => {
         const { taskId, commentId } = req.params
         const { content } = req.body
-        const comment = await Comment.findById(commentId)
+        const comment = await Comment.findById(commentId).populate({
+            path: 'task',
+            select: 'watcher'
+        })
+
+        addWatcher(comment.task, req.user)
 
         const reply = new Comment({
             type: 'reply',
@@ -127,6 +135,7 @@ router.post(
 
         await comment.save()
         await reply.save()
+        await comment.task.save()
         res.json({ success: true, message: 'OK' })
     })
 )

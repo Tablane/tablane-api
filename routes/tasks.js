@@ -5,6 +5,7 @@ const User = require('../models/user')
 const Board = require('../models/board')
 const Activity = require('../models/activity')
 const { addActivity } = require('../controllers/activities')
+const { addWatcher } = require('../utils/addWatcher')
 
 // add new watcher to task
 router.post(
@@ -70,6 +71,8 @@ router.patch(
         const { column, value, type } = req.body
         const task = await Task.findById(taskId)
 
+        addWatcher(task, req.user)
+
         // edit name
         if (type === 'name') {
             await addActivity(task, req.user, {
@@ -116,6 +119,8 @@ router.delete(
     wrapAsync(async (req, res) => {
         const { boardId, taskId, optionId } = req.params
         const task = await Task.findById(taskId)
+
+        addWatcher(task, req.user)
 
         const options = task.options
         const optionIndex = options.indexOf(
@@ -166,9 +171,7 @@ router.post(
         })
 
         // only add author if not duplicated
-        if (subtask.watcher.indexOf(req.user._id) === -1) {
-            subtask.watcher.push(req.user)
-        }
+        addWatcher(subtask, req.user)
 
         task.subtasks.push(subtask)
 
