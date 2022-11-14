@@ -39,7 +39,10 @@ router.post(
     wrapAsync(async (req, res) => {
         const { username, email, password } = req.body
         const user = await User.findOne({ email })
-        if (user) throw new AppError('User already exists', 400)
+        if (user)
+            throw new AppError('User already exists', 400, {
+                friendlyError: true
+            })
 
         const hash = await bcrypt.hashSync(password, 12)
 
