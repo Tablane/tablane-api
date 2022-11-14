@@ -133,6 +133,34 @@ const instance = hocuspocus.configure({
     async onListen(data) {
         console.log(`Hocuspocus listening on port ${data.port}`)
     },
+    async onAuthenticate({ token, documentName }) {
+        if (!token) throw new AppError('Invalid access token', 403)
+
+        try {
+            const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
+            const user = await User.findById(payload.user._id)
+
+            const task = await Task.findById(documentName).populate({
+                path: 'workspace',
+                populate: ['roles', 'members.role']
+            })
+
+            const member = task.workspace.members.find(
+                x => x.user.toString() === user._id.toString()
+            )
+
+            if (!member) throw new AppError('Invalid access token', 403)
+
+            return {
+                user: {
+                    username: user.username,
+                    _id: user._id
+                }
+            }
+        } catch (err) {
+            throw new AppError('Invalid access token', 403)
+        }
+    },
     extensions: [
         new Database({
             fetch: async ({ documentName }) => {
