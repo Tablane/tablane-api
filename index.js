@@ -16,11 +16,15 @@ const roles = require('./routes/roles')
 const comments = require('./routes/comments')
 const http = require('http').createServer(app)
 const { Server } = require('socket.io')
-const jwt = require('jsonwebtoken')
 const { Server: hocuspocus } = require('@hocuspocus/server')
 const { Database } = require('@hocuspocus/extension-database')
 const Task = require('./models/task')
 const { rateLimit } = require('./utils/rateLimit')
+const AppError = require('./HttpError')
+const { verify } = require('jsonwebtoken')
+const User = require('./models/user')
+const Board = require('./models/board')
+const Workspace = require('./models/workspace')
 
 dotenv.config()
 mongoose.connect(process.env.DB_CONNECT, {}, () =>
@@ -53,43 +57,56 @@ app.use('/api/notification', notification)
 app.use('/api/role', roles)
 app.use('/api/comment', comments)
 
-io.on('connect', socket => {
-    socket.on('token', payload => {
-        try {
-            const token = jwt.verify(
-                payload.token,
-                process.env.ACCESS_TOKEN_SECRET
-            )
-            socket.join(token.user._id)
-            socket.authenticated = true
-        } catch (err) {
-            socket.disconnect()
+io.use(async (socket, next) => {
+    const authorization = socket.handshake.headers['authorization']
+    if (!authorization) return next(new AppError('Invalid access tokens', 403))
+
+    try {
+        const token = authorization.split(' ')[1]
+        const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const user = await User.findById(payload.user._id)
+        socket.user = {
+            username: user.username,
+            _id: user._id
         }
-    })
+    } catch (err) {
+        return next(new AppError('Invalid access token', 403))
+    }
+    next()
+})
 
-    setInterval(() => {
-        socket.emit('token', 'jwt_expiring')
-        socket.authenticated = false
-        setTimeout(() => {
-            if (!socket.authenticated) {
-                socket.emit('jwt_auth_failed', 'socket disconnected')
-                socket.disconnect()
+io.on('connect', socket => {
+    socket.on('subscribe', async ({ room, type }) => {
+        try {
+            let user
+            if (type === 'board') {
+                const board = await Board.findById(room).populate({
+                    path: 'workspace',
+                    populate: 'members'
+                })
+                user = board.workspace.members.find(
+                    x => x.user.toString() === socket.user._id.toString()
+                )
+            } else if (type === 'workspace') {
+                const workspace = await Workspace.findOne({
+                    id: room
+                }).populate('members')
+                user = workspace.members.find(
+                    x => x.user.toString() === socket.user._id.toString()
+                )
             }
-        }, 1000 * 15)
-    }, 1000 * 60 * 15)
-
-    socket.on('subscribe', room => {
-        if (socket.authenticated) {
-            socket.join(room)
-            socket.emit('message', 'successfully joined room')
+            if (user) {
+                socket.join(room)
+                socket.emit('message', 'successfully joined room')
+            }
+        } catch (err) {
+            console.log(err)
         }
     })
 
     socket.on('unsubscribe', room => {
-        if (socket.authenticated) {
-            socket.leave(room)
-            socket.emit('message', 'successfully left room')
-        }
+        socket.leave(room)
+        socket.emit('message', 'successfully left room')
     })
 })
 
