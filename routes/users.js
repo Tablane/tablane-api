@@ -182,16 +182,12 @@ router.post(
         if (!valid)
             throw new AppError('Invalid password', 400, { friendlyError: true })
 
-        if (user.multiFactorAuth) {
-            const totpMethod = user.multiFactorMethods.find(
-                x => x.type === 'totp'
-            )
-            const securityKeyMethod = user.multiFactorMethods.find(
+        if (user.mfa_methods) {
+            const totpMethod = user.mfa_methods.find(x => x.type === 'totp')
+            const securityKeyMethod = user.mfa_methods.find(
                 x => x.type === 'security_key'
             )
-            const emailMethod = user.multiFactorMethods.find(
-                x => x.type === 'email'
-            )
+            const emailMethod = user.mfa_methods.find(x => x.type === 'email')
             if (totp && totpMethod) {
                 try {
                     authenticator.options = { window: 2 }
@@ -403,15 +399,14 @@ router.get(
             assignedTasks: user.assignedTasks,
             newNotifications: user.newNotifications,
             email: user.email,
-            multiFactorMethods: {
-                totp: { enabled: user.multiFactorMethods.totp.enabled },
+            mfa_methods: {
+                totp: { enabled: user.mfa_methods.totp.enabled },
                 backupCodes: {
-                    enabled: user.multiFactorMethods.backupCodes.enabled
+                    enabled: user.mfa_methods.backupCodes.enabled
                 },
-                email: { enabled: user.multiFactorMethods.email.enabled },
+                email: { enabled: user.mfa_methods.email.enabled },
                 securityKey: {
-                    enabled:
-                        user.multiFactorMethods.securityKey.devices.length > 0
+                    enabled: user.mfa_methods.securityKey.devices.length > 0
                 }
             }
         })
@@ -428,7 +423,7 @@ router.get(
         const user = await User.findById('6348a3742cf25446c45fed8a')
         // (Pseudocode) Retrieve any of the user's previously-
         // registered authenticators
-        const userAuthenticators = user.multiFactorMethods.find(
+        const userAuthenticators = user.mfa_methods.find(
             x => x.type === 'security_key'
         ).devices
 
@@ -494,7 +489,7 @@ router.post(
         const { registrationInfo } = verification
         const { credentialPublicKey, credentialID, counter } = registrationInfo
 
-        user.multiFactorMethods
+        user.mfa_methods
             .find(x => x.type === 'security_key')
             .devices.push({
                 credentialPublicKey: credentialPublicKey,
@@ -569,14 +564,14 @@ router.post(
         if (token) {
             const isValid = authenticator.check(
                 token,
-                user.multiFactorMethods.totp.secret
+                user.mfa_methods.totp.secret
             )
             if (!isValid)
                 throw new AppError('Invalid Code', 400, { friendlyError: true })
-            user.multiFactorMethods.totp.enabled = true
+            user.mfa_methods.totp.enabled = true
         } else {
             const secret = authenticator.generateSecret()
-            user.multiFactorMethods.totp = { enabled: false, secret }
+            user.mfa_methods.totp = { enabled: false, secret }
             await user.save()
             return res.json({ success: true, secret })
         }
@@ -593,7 +588,7 @@ router.delete(
     wrapAsync(async (req, res) => {
         const user = await User.findById(req.user._id)
 
-        user.multiFactorMethods.totp = { enabled: false, secret: '' }
+        user.mfa_methods.totp = { enabled: false, secret: '' }
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -608,7 +603,7 @@ router.post(
         const { token } = req.body
         const user = await User.findById(req.user._id)
 
-        user.multiFactorMethods.email.enabled = true
+        user.mfa_methods.email.enabled = true
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -623,7 +618,7 @@ router.delete(
         const { token } = req.body
         const user = await User.findById(req.user._id)
 
-        user.multiFactorMethods.email.enabled = false
+        user.mfa_methods.email.enabled = false
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -643,7 +638,7 @@ router.post(
             )
         }
 
-        user.multiFactorMethods.backupCodes = {
+        user.mfa_methods.backupCodes = {
             enabled: true,
             codes: getCodes()
         }
@@ -666,7 +661,7 @@ router.put(
             )
         }
 
-        user.multiFactorMethods.backupCodes = {
+        user.mfa_methods.backupCodes = {
             enabled: true,
             codes: getCodes()
         }
@@ -683,7 +678,7 @@ router.delete(
     wrapAsync(async (req, res) => {
         const user = await User.findById(req.user._id)
 
-        user.multiFactorMethods.backupCodes = { enabled: false, codes: [] }
+        user.mfa_methods.backupCodes = { enabled: false, codes: [] }
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -700,7 +695,7 @@ router.get(
         await user.save()
         res.json({
             success: true,
-            codes: user.multiFactorMethods.backupCodes.codes
+            codes: user.mfa_methods.backupCodes.codes
         })
     })
 )
