@@ -11,7 +11,6 @@ module.exports.rateLimit = wrapAsync(async (req, res, next) => {
     const key = req.ip
 
     if (req.path.startsWith('/api/user/')) {
-        console.log('doing something special with user')
         await rateLimiter
             .consume(key, 50)
             .then(() => {
