@@ -20,6 +20,7 @@ const jwt = require('jsonwebtoken')
 const { Server: hocuspocus } = require('@hocuspocus/server')
 const { Database } = require('@hocuspocus/extension-database')
 const Task = require('./models/task')
+const { rateLimit } = require('./utils/rateLimit')
 
 dotenv.config()
 mongoose.connect(process.env.DB_CONNECT, {}, () =>
@@ -40,6 +41,7 @@ app.set('socketio', io)
 app.set('trust proxy', 1)
 app.use(cookieParser(process.env.COOKIE_SECRET))
 app.use(cors(corsOptions))
+app.use(rateLimit)
 
 app.use('/api/user', users)
 app.use('/api/workspace', workspaces)
