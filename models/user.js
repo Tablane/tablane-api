@@ -28,11 +28,11 @@ const userSchema = new mongoose.Schema({
             ref: 'Task'
         }
     ],
-    multiFactorAuth: {
+    mfa_enabled: {
         type: Boolean,
         default: false
     },
-    multiFactorMethods: {
+    mfa_methods: {
         totp: { enabled: Boolean, secret: String },
         backupCodes: { enabled: Boolean, codes: [Number] },
         email: { enabled: Boolean },
