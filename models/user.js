@@ -34,9 +34,9 @@ const userSchema = new mongoose.Schema({
     },
     mfa_methods: {
         totp: { enabled: Boolean, secret: String },
-        backupCodes: { enabled: Boolean, codes: [Number] },
+        backup_codes: { enabled: Boolean, codes: [Number] },
         email: { enabled: Boolean },
-        securityKey: {
+        security_key: {
             devices: [
                 {
                     counter: Number,

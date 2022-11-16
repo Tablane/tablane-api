@@ -21,6 +21,16 @@ const {
     verifyAuthenticationResponse
 } = require('@simplewebauthn/server')
 
+const check_disabled = user => {
+    const methods = user.mfa_methods
+    return (
+        methods.totp.enabled ||
+        methods.email.enabled ||
+        methods.backup_codes.enabled ||
+        methods.security_key.devices.length > 0
+    )
+}
+
 router.get(
     '/logout',
     wrapAsync(async (req, res) => {
@@ -137,6 +147,7 @@ router.post(
         const {
             email,
             password,
+            type,
             totp,
             request_security_key_challenge,
             authenticatorResponse
@@ -182,31 +193,33 @@ router.post(
         if (!valid)
             throw new AppError('Invalid password', 400, { friendlyError: true })
 
-        if (user.mfa_methods) {
-            const totpMethod = user.mfa_methods.find(x => x.type === 'totp')
-            const securityKeyMethod = user.mfa_methods.find(
-                x => x.type === 'security_key'
-            )
-            const emailMethod = user.mfa_methods.find(x => x.type === 'email')
-            if (totp && totpMethod) {
+        if (user.mfa_enabled) {
+            const totpMethod = user.mfa_methods.totp
+            const securityKeyMethod = user.mfa_methods.security_key
+            const emailMethod = user.mfa_methods.email
+            const backupMethod = user.mfa_methods.backup_codes
+
+            if (type === 'totp' && totp) {
                 try {
                     authenticator.options = { window: 2 }
                     const valid = authenticator.check(totp, totpMethod.secret)
                     if (!valid) {
-                        if (totpMethod.backup_codes.includes(totp)) {
-                            totpMethod.backup_codes =
-                                totpMethod.backup_codes.filter(
-                                    x => x.toString() !== totp
-                                )
+                        if (
+                            backupMethod.enabled &&
+                            backupMethod.codes.includes(totp)
+                        ) {
+                            backupMethod.codes = backupMethod.codes.filter(
+                                x => x !== parseInt(totp)
+                            )
+                            await user.save()
                         } else throw Error()
                     }
                 } catch (err) {
-                    throw new AppError(
-                        'Invalid Multi Factor Authentication',
-                        400
-                    )
+                    throw new AppError('Invalid MFA Code', 400, {
+                        friendlyError: true
+                    })
                 }
-            } else if (securityKeyMethod && authenticatorResponse) {
+            } else if (type === 'security_key' && authenticatorResponse) {
                 const expectedChallenge = currentChallenges[user._id].challenge
 
                 const authenticator = securityKeyMethod.devices[0]
@@ -222,7 +235,7 @@ router.post(
                     verification = await verifyAuthenticationResponse({
                         credential: authenticatorResponse,
                         expectedChallenge,
-                        expectedOrigin: 'http://localhost:3000',
+                        expectedOrigin: process.env.FRONTEND_HOST,
                         expectedRPID: 'localhost',
                         authenticator
                     })
@@ -233,9 +246,11 @@ router.post(
 
                 const { verified } = verification
                 if (!verified) throw Error('somethings wrong, you are hacker')
-            } else if (securityKeyMethod && request_security_key_challenge) {
+            } else if (
+                type === 'security_key' &&
+                request_security_key_challenge
+            ) {
                 const options = generateAuthenticationOptions({
-                    // Require users to use a previously-registered authenticator
                     allowCredentials: securityKeyMethod.devices.map(
                         authenticator => {
                             return {
@@ -260,7 +275,7 @@ router.post(
                 return res.status(200).json({
                     success: false,
                     nextStep: 'mfa',
-                    methods: ['totp', 'security_key', 'email']
+                    methods: ['totp', 'security_key', 'email', 'backup_codes']
                 })
             }
         }
@@ -401,12 +416,12 @@ router.get(
             email: user.email,
             mfa_methods: {
                 totp: { enabled: user.mfa_methods.totp.enabled },
-                backupCodes: {
-                    enabled: user.mfa_methods.backupCodes.enabled
+                backup_codes: {
+                    enabled: user.mfa_methods.backup_codes.enabled
                 },
                 email: { enabled: user.mfa_methods.email.enabled },
-                securityKey: {
-                    enabled: user.mfa_methods.securityKey.devices.length > 0
+                security_key: {
+                    enabled: user.mfa_methods.security_key.devices.length > 0
                 }
             }
         })
@@ -418,6 +433,7 @@ let currentChallenges = []
 router.get(
     '/generateRegistrationOptions',
     wrapAsync(async (req, res) => {
+        throw new AppError('This route is not available in production', 400)
         // (Pseudocode) Retrieve the user from the database
         // after they've logged in
         const user = await User.findById('6348a3742cf25446c45fed8a')
@@ -457,6 +473,7 @@ router.get(
 router.post(
     '/verifyRegistration',
     wrapAsync(async (req, res) => {
+        throw new AppError('This route is not available in production', 400)
         const { body } = req
 
         // (Pseudocode) Retrieve the logged-in user
@@ -476,7 +493,7 @@ router.post(
             verification = await verifyRegistrationResponse({
                 credential: body,
                 expectedChallenge,
-                expectedOrigin: 'http://localhost:3000',
+                expectedOrigin: process.env.FRONTEND_HOST,
                 expectedRPID: 'localhost'
             })
         } catch (error) {
@@ -569,6 +586,7 @@ router.post(
             if (!isValid)
                 throw new AppError('Invalid Code', 400, { friendlyError: true })
             user.mfa_methods.totp.enabled = true
+            user.mfa_enabled = true
         } else {
             const secret = authenticator.generateSecret()
             user.mfa_methods.totp = { enabled: false, secret }
@@ -589,6 +607,7 @@ router.delete(
         const user = await User.findById(req.user._id)
 
         user.mfa_methods.totp = { enabled: false, secret: '' }
+        user.mfa_enabled = check_disabled(user)
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -600,10 +619,10 @@ router.post(
     isLoggedIn,
     isSudoMode,
     wrapAsync(async (req, res) => {
-        const { token } = req.body
         const user = await User.findById(req.user._id)
 
         user.mfa_methods.email.enabled = true
+        user.mfa_enabled = true
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -615,10 +634,10 @@ router.delete(
     isLoggedIn,
     isSudoMode,
     wrapAsync(async (req, res) => {
-        const { token } = req.body
         const user = await User.findById(req.user._id)
 
         user.mfa_methods.email.enabled = false
+        user.mfa_enabled = check_disabled(user)
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -638,10 +657,11 @@ router.post(
             )
         }
 
-        user.mfa_methods.backupCodes = {
+        user.mfa_methods.backup_codes = {
             enabled: true,
             codes: getCodes()
         }
+        user.mfa_enabled = true
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -661,7 +681,7 @@ router.put(
             )
         }
 
-        user.mfa_methods.backupCodes = {
+        user.mfa_methods.backup_codes = {
             enabled: true,
             codes: getCodes()
         }
@@ -678,7 +698,8 @@ router.delete(
     wrapAsync(async (req, res) => {
         const user = await User.findById(req.user._id)
 
-        user.mfa_methods.backupCodes = { enabled: false, codes: [] }
+        user.mfa_methods.backup_codes = { enabled: false, codes: [] }
+        user.mfa_enabled = check_disabled(user)
 
         await user.save()
         res.json({ success: true, message: 'OK' })
@@ -692,10 +713,9 @@ router.get(
     wrapAsync(async (req, res) => {
         const user = await User.findById(req.user._id)
 
-        await user.save()
         res.json({
             success: true,
-            codes: user.mfa_methods.backupCodes.codes
+            codes: user.mfa_methods.backup_codes.codes
         })
     })
 )
