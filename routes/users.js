@@ -272,10 +272,17 @@ router.post(
 
                 return res.json({ success: false, options })
             } else {
+                let methods = []
+                if (totpMethod.enabled || backupMethod.enabled)
+                    methods.push('totp')
+                if (securityKeyMethod.devices.length >= 1)
+                    methods.push('security_key')
+                if (emailMethod.enabled) methods.push('email')
+
                 return res.status(200).json({
                     success: false,
                     nextStep: 'mfa',
-                    methods: ['totp', 'security_key', 'email', 'backup_codes']
+                    methods
                 })
             }
         }
