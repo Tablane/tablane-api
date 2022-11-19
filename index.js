@@ -16,9 +16,6 @@ const roles = require('./routes/roles')
 const comments = require('./routes/comments')
 const http = require('http').createServer(app)
 const { Server } = require('socket.io')
-const { Server: hocuspocus } = require('@hocuspocus/server')
-const { Database } = require('@hocuspocus/extension-database')
-const Task = require('./models/task')
 const { rateLimit } = require('./utils/rateLimit')
 const AppError = require('./HttpError')
 const { verify } = require('jsonwebtoken')
@@ -127,63 +124,3 @@ app.use((err, req, res, next) => {
 http.listen(process.env.PORT || 3001, () => {
     console.log(`Listening on port ${process.env.PORT || 3001}`)
 })
-
-const instance = hocuspocus.configure({
-    port: 3002,
-    async onListen(data) {
-        console.log(`Hocuspocus listening on port ${data.port}`)
-    },
-    async onAuthenticate({ token, documentName }) {
-        if (!token) throw new AppError('Invalid access token', 403)
-
-        try {
-            const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
-            const user = await User.findById(payload.user._id)
-
-            const task = await Task.findById(documentName).populate({
-                path: 'workspace',
-                populate: ['roles', 'members.role']
-            })
-
-            const member = task.workspace.members.find(
-                x => x.user.toString() === user._id.toString()
-            )
-
-            if (!member) throw new AppError('Invalid access token', 403)
-
-            return {
-                user: {
-                    username: user.username,
-                    _id: user._id
-                }
-            }
-        } catch (err) {
-            throw new AppError('Invalid access token', 403)
-        }
-    },
-    extensions: [
-        new Database({
-            fetch: async ({ documentName }) => {
-                try {
-                    const task = await Task.findById(documentName)
-                    if (task.description.length === 0) return undefined
-                    return new Uint8Array(task.description)
-                } catch (err) {
-                    console.log(err)
-                }
-            },
-            store: async ({ documentName, state }) => {
-                try {
-                    if (!documentName || !state) return
-                    const task = await Task.findById(documentName)
-                    if (!task) return
-                    task.description = state
-                    task.save()
-                } catch (err) {
-                    console.log(err)
-                }
-            }
-        })
-    ]
-})
-instance.listen()
