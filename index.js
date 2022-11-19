@@ -54,6 +54,13 @@ app.use('/api/notification', notification)
 app.use('/api/role', roles)
 app.use('/api/comment', comments)
 
+app.get('/api/status', (req, res) => {
+    res.json({
+        success: true,
+        message: 'api is online'
+    })
+})
+
 io.use(async (socket, next) => {
     const authorization = socket.handshake.headers['authorization']
     if (!authorization) return next(new AppError('Invalid access tokens', 403))
