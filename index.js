@@ -69,6 +69,8 @@ io.use(async (socket, next) => {
         const token = authorization.split(' ')[1]
         const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
         const user = await User.findById(payload.user._id)
+
+        socket.join(user._id.toString())
         socket.user = {
             username: user.username,
             _id: user._id
