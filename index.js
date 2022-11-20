@@ -43,6 +43,14 @@ app.set('trust proxy', 1)
 app.use(cookieParser(process.env.COOKIE_SECRET))
 app.use(cors(corsOptions))
 app.use(rateLimit)
+app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+        res.setHeader('Cache-Control', 'public, max-age=86400')
+        res.end()
+    } else {
+        next()
+    }
+})
 
 app.use('/api/user', users)
 app.use('/api/workspace', workspaces)
