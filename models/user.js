@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
             ref: 'Task'
         }
     ],
+    blocked: {
+        type: Boolean,
+        default: false
+    },
     mfa_enabled: {
         type: Boolean,
         default: false

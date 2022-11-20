@@ -287,6 +287,11 @@ router.post(
             }
         }
 
+        if (user.blocked)
+            throw new AppError("Looks like you've been banned.", 400, {
+                friendlyError: true
+            })
+
         // remove expired refreshTokens
         const expiredTokens = user.refreshTokens
             .filter(x => x.expiresAt < Date.now())
@@ -451,7 +456,7 @@ router.get(
         ).devices
 
         const options = generateRegistrationOptions({
-            rpName: 'TaskBoard',
+            rpName: 'Tablane',
             rpID: 'localhost',
             userID: user._id,
             userName: user.username,
