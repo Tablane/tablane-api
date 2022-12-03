@@ -25,7 +25,7 @@ commentSchema.post('findOneAndDelete', async function (comment) {
     if (!comment) return
 
     comment.replies.map(async reply => {
-        mongoose.model('Comment', commentSchema).findByIdAndDelete(reply)
+        await mongoose.model('Comment', commentSchema).findByIdAndDelete(reply)
     })
 })
 
