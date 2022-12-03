@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose')
+const mongoose = require('mongoose')
 
 const commentSchema = new Schema({
     type: { type: String, enum: ['comment', 'reply'] },
@@ -18,6 +19,14 @@ const commentSchema = new Schema({
             ref: 'Comment'
         }
     ]
+})
+
+commentSchema.post('findOneAndDelete', async function (comment) {
+    if (!comment) return
+
+    comment.replies.map(async reply => {
+        mongoose.model('Comment', commentSchema).findByIdAndDelete(reply)
+    })
 })
 
 module.exports = model('Comment', commentSchema)
