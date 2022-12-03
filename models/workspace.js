@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const User = require('../models/user')
-const Board = require('../models/board')
+const Space = require('../models/space')
+const Role = require('../models/role')
 const Schema = mongoose.Schema
 
 const workspaceSchema = new mongoose.Schema({
@@ -39,19 +40,21 @@ const workspaceSchema = new mongoose.Schema({
     ]
 })
 
-workspaceSchema.post('findOneAndDelete', async function (doc) {
-    if (!doc) return
-    doc.members.map(async x => {
-        const user = await User.findById(x.user)
+workspaceSchema.post('findOneAndDelete', async function (workspace) {
+    if (!workspace) return
+
+    workspace.members.map(async member => {
+        const user = await User.findById(member.user)
         user.workspaces = user.workspaces.filter(
-            x => x.toString() !== doc._id.toString()
+            x => x.toString() !== workspace._id.toString()
         )
-        user.save()
+        await user.save()
     })
-    doc.spaces.map(space => {
-        space.boards.map(async x => {
-            const board = await Board.findByIdAndDelete(x)
-        })
+    workspace.spaces.map(async space => {
+        await Space.findByIdAndDelete(space)
+    })
+    workspace.roles.map(async role => {
+        await Role.findByIdAndDelete(role)
     })
 })
 
