@@ -62,7 +62,9 @@ taskSchema.post('findOneAndDelete', async function (task) {
         async task =>
             await mongoose.model('Task', taskSchema).findByIdAndDelete(task)
     )
-    task.comments.map(async comment => await Comment.findByIdAndDelete(comment))
+    task.comments.map(async comment => {
+        await Comment.findByIdAndDelete(comment)
+    })
     task.history.map(
         async activity => await Activity.findByIdAndDelete(activity)
     )
