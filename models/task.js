@@ -1,5 +1,8 @@
 const mongoose = require('mongoose')
 const { Schema } = require('mongoose')
+const Task = require('./task')
+const Comment = require('./comment')
+const Activity = require('./activity')
 
 const taskSchema = new mongoose.Schema({
     name: String,
@@ -50,6 +53,19 @@ const taskSchema = new mongoose.Schema({
             ref: 'User'
         }
     ]
+})
+
+taskSchema.post('findOneAndDelete', async function (task) {
+    if (!task) return
+
+    task.subtasks.map(
+        async task =>
+            await mongoose.model('Task', taskSchema).findByIdAndDelete(task)
+    )
+    task.comments.map(async comment => await Comment.findByIdAndDelete(comment))
+    task.history.map(
+        async activity => await Activity.findByIdAndDelete(activity)
+    )
 })
 
 module.exports = mongoose.model('Task', taskSchema)
