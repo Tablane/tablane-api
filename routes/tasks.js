@@ -210,40 +210,49 @@ router.patch(
     hasPermission('MANAGE:TASK'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
-        const { result, destinationIndex, sourceIndex } = req.body
-        const board = await Board.findById(boardId).populate('tasks')
-        const task = board.tasks.find(
-            x => x._id.toString() === result.draggableId
-        )
+        const { taskId, newParentTask, index, overId } = req.body
+        const board = await Board.findById(boardId)
+        const task = await Task.findById(taskId)
 
-        const column = task.options.find(
-            option => option.column.toString() === board.groupBy
-        )
-        if (column) column.value = result.destination.droppableId
-        else if (
-            !(
-                board.groupBy === 'none' ||
-                !board.groupBy ||
-                result.destination.droppableId === 'empty'
+        // remove from old location
+        if (task.parentTask) {
+            const oldParent = await Task.findById(task.parentTask)
+            oldParent.subtasks = oldParent.subtasks.filter(
+                x => x.toString() !== task._id.toString()
             )
-        ) {
-            task.options.push({
-                column: board.groupBy,
-                value: result.destination.droppableId
-            })
+            await oldParent.save()
+        } else {
+            board.tasks = board.tasks.filter(
+                x => x.toString() !== task._id.toString()
+            )
         }
 
-        const [deletedTask] = board.tasks.splice(sourceIndex, 1)
+        task.parentTask = newParentTask
 
-        if (destinationIndex < 0) board.tasks.push(deletedTask)
-        else board.tasks.splice(destinationIndex, 0, deletedTask)
+        // add to new location
+        if (newParentTask) {
+            const newParent = await Task.findById(newParentTask)
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
-            event: 'sortTask',
-            id: boardId,
-            body: { result, destinationIndex, sourceIndex }
-        })
+            const newIndex = newParent.subtasks.findIndex(
+                x => x._id.toString() === overId
+            )
+            if (newIndex === -1) {
+                newParent.subtasks.push(task)
+            } else {
+                newParent.subtasks.splice(newIndex, 0, task)
+            }
+
+            await newParent.save()
+        } else {
+            const newIndex = board.tasks.findIndex(
+                x => x._id.toString() === overId
+            )
+            if (newIndex === -1) {
+                board.tasks.push(task)
+            } else {
+                board.tasks.splice(newIndex, 0, task)
+            }
+        }
 
         await task.save()
         await board.save()
