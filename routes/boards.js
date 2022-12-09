@@ -33,7 +33,19 @@ router.get(
                 },
                 {
                     path: 'comments',
-                    populate: 'replies'
+                    populate: [
+                        {
+                            path: 'author',
+                            select: 'username'
+                        },
+                        {
+                            path: 'replies',
+                            populate: {
+                                path: 'author',
+                                select: 'username'
+                            }
+                        }
+                    ]
                 },
                 {
                     path: 'subtasks',
@@ -75,7 +87,20 @@ router.get(
                                                                                     {
                                                                                         path: 'comments',
                                                                                         populate:
-                                                                                            'replies'
+                                                                                            [
+                                                                                                {
+                                                                                                    path: 'author',
+                                                                                                    select: 'username'
+                                                                                                },
+                                                                                                {
+                                                                                                    path: 'replies',
+                                                                                                    populate:
+                                                                                                        {
+                                                                                                            path: 'author',
+                                                                                                            select: 'username'
+                                                                                                        }
+                                                                                                }
+                                                                                            ]
                                                                                     }
                                                                                 ]
                                                                         },
@@ -94,7 +119,20 @@ router.get(
                                                                         {
                                                                             path: 'comments',
                                                                             populate:
-                                                                                'replies'
+                                                                                [
+                                                                                    {
+                                                                                        path: 'author',
+                                                                                        select: 'username'
+                                                                                    },
+                                                                                    {
+                                                                                        path: 'replies',
+                                                                                        populate:
+                                                                                            {
+                                                                                                path: 'author',
+                                                                                                select: 'username'
+                                                                                            }
+                                                                                    }
+                                                                                ]
                                                                         }
                                                                     ]
                                                                 },
@@ -111,8 +149,20 @@ router.get(
                                                                 },
                                                                 {
                                                                     path: 'comments',
-                                                                    populate:
-                                                                        'replies'
+                                                                    populate: [
+                                                                        {
+                                                                            path: 'author',
+                                                                            select: 'username'
+                                                                        },
+                                                                        {
+                                                                            path: 'replies',
+                                                                            populate:
+                                                                                {
+                                                                                    path: 'author',
+                                                                                    select: 'username'
+                                                                                }
+                                                                        }
+                                                                    ]
                                                                 }
                                                             ]
                                                         },
@@ -129,7 +179,19 @@ router.get(
                                                         },
                                                         {
                                                             path: 'comments',
-                                                            populate: 'replies'
+                                                            populate: [
+                                                                {
+                                                                    path: 'author',
+                                                                    select: 'username'
+                                                                },
+                                                                {
+                                                                    path: 'replies',
+                                                                    populate: {
+                                                                        path: 'author',
+                                                                        select: 'username'
+                                                                    }
+                                                                }
+                                                            ]
                                                         }
                                                     ]
                                                 },
@@ -146,7 +208,19 @@ router.get(
                                                 },
                                                 {
                                                     path: 'comments',
-                                                    populate: 'replies'
+                                                    populate: [
+                                                        {
+                                                            path: 'author',
+                                                            select: 'username'
+                                                        },
+                                                        {
+                                                            path: 'replies',
+                                                            populate: {
+                                                                path: 'author',
+                                                                select: 'username'
+                                                            }
+                                                        }
+                                                    ]
                                                 }
                                             ]
                                         },
@@ -163,7 +237,19 @@ router.get(
                                         },
                                         {
                                             path: 'comments',
-                                            populate: 'replies'
+                                            populate: [
+                                                {
+                                                    path: 'author',
+                                                    select: 'username'
+                                                },
+                                                {
+                                                    path: 'replies',
+                                                    populate: {
+                                                        path: 'author',
+                                                        select: 'username'
+                                                    }
+                                                }
+                                            ]
                                         }
                                     ]
                                 },
@@ -180,7 +266,19 @@ router.get(
                                 },
                                 {
                                     path: 'comments',
-                                    populate: 'replies'
+                                    populate: [
+                                        {
+                                            path: 'author',
+                                            select: 'username'
+                                        },
+                                        {
+                                            path: 'replies',
+                                            populate: {
+                                                path: 'author',
+                                                select: 'username'
+                                            }
+                                        }
+                                    ]
                                 }
                             ]
                         },
@@ -197,7 +295,19 @@ router.get(
                         },
                         {
                             path: 'comments',
-                            populate: 'replies'
+                            populate: [
+                                {
+                                    path: 'author',
+                                    select: 'username'
+                                },
+                                {
+                                    path: 'replies',
+                                    populate: {
+                                        path: 'author',
+                                        select: 'username'
+                                    }
+                                }
+                            ]
                         }
                     ]
                 }
