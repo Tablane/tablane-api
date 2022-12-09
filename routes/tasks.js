@@ -134,6 +134,14 @@ router.delete(
         const optionIndex = options.indexOf(
             options.find(x => x.column.toString() === optionId)
         )
+
+        await addActivity(task, req.user, {
+            type: 'attribute',
+            field: optionId,
+            from: options[optionIndex].value,
+            to: null
+        })
+
         if (optionIndex >= 0) options.splice(optionIndex, 1)
 
         const io = req.app.get('socketio')
