@@ -158,6 +158,15 @@ router.post(
         const { name, taskGroupId, _id } = req.body
         const task = await Task.findById(taskId)
 
+        const newTaskActivity = new Activity({
+            type: 'activity',
+            author: req.user,
+            timestamp: new Date().getTime(),
+            change: {
+                type: 'creation'
+            }
+        })
+
         const subtask = new Task({
             _id,
             name,
@@ -168,14 +177,7 @@ router.post(
             workspace: task.workspace,
             parentTask: task,
             level: task.level + 1,
-            history: [
-                // {
-                //     type: 'activity',
-                //     author: req.user.username,
-                //     text: 'created this task',
-                //     timestamp: new Date().getTime()
-                // }
-            ]
+            history: [newTaskActivity]
         })
 
         // only add author if not duplicated
@@ -199,6 +201,7 @@ router.post(
 
         await task.save()
         await subtask.save()
+        await newTaskActivity.save()
         res.json({ success: true, message: 'OK' })
     })
 )
