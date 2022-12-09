@@ -25,7 +25,11 @@ router.get(
                     select: 'username'
                 },
                 {
-                    path: 'history'
+                    path: 'history',
+                    populate: {
+                        path: 'author',
+                        select: 'username'
+                    }
                 },
                 {
                     path: 'comments',
@@ -61,7 +65,12 @@ router.get(
                                                                                         select: 'username'
                                                                                     },
                                                                                     {
-                                                                                        path: 'history'
+                                                                                        path: 'history',
+                                                                                        populate:
+                                                                                            {
+                                                                                                path: 'author',
+                                                                                                select: 'username'
+                                                                                            }
                                                                                     },
                                                                                     {
                                                                                         path: 'comments',
@@ -75,7 +84,12 @@ router.get(
                                                                             select: 'username'
                                                                         },
                                                                         {
-                                                                            path: 'history'
+                                                                            path: 'history',
+                                                                            populate:
+                                                                                {
+                                                                                    path: 'author',
+                                                                                    select: 'username'
+                                                                                }
                                                                         },
                                                                         {
                                                                             path: 'comments',
@@ -89,7 +103,11 @@ router.get(
                                                                     select: 'username'
                                                                 },
                                                                 {
-                                                                    path: 'history'
+                                                                    path: 'history',
+                                                                    populate: {
+                                                                        path: 'author',
+                                                                        select: 'username'
+                                                                    }
                                                                 },
                                                                 {
                                                                     path: 'comments',
@@ -103,7 +121,11 @@ router.get(
                                                             select: 'username'
                                                         },
                                                         {
-                                                            path: 'history'
+                                                            path: 'history',
+                                                            populate: {
+                                                                path: 'author',
+                                                                select: 'username'
+                                                            }
                                                         },
                                                         {
                                                             path: 'comments',
@@ -116,7 +138,11 @@ router.get(
                                                     select: 'username'
                                                 },
                                                 {
-                                                    path: 'history'
+                                                    path: 'history',
+                                                    populate: {
+                                                        path: 'author',
+                                                        select: 'username'
+                                                    }
                                                 },
                                                 {
                                                     path: 'comments',
@@ -129,7 +155,11 @@ router.get(
                                             select: 'username'
                                         },
                                         {
-                                            path: 'history'
+                                            path: 'history',
+                                            populate: {
+                                                path: 'author',
+                                                select: 'username'
+                                            }
                                         },
                                         {
                                             path: 'comments',
@@ -142,7 +172,11 @@ router.get(
                                     select: 'username'
                                 },
                                 {
-                                    path: 'history'
+                                    path: 'history',
+                                    populate: {
+                                        path: 'author',
+                                        select: 'username'
+                                    }
                                 },
                                 {
                                     path: 'comments',
@@ -155,7 +189,11 @@ router.get(
                             select: 'username'
                         },
                         {
-                            path: 'history'
+                            path: 'history',
+                            populate: {
+                                path: 'author',
+                                select: 'username'
+                            }
                         },
                         {
                             path: 'comments',
