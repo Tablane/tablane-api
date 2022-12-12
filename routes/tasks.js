@@ -91,12 +91,14 @@ router.patch(
         const option = options.find(x => x.column.toString() === column)
 
         if (type === 'status') {
-            await addActivity(task, req.user, {
-                type: 'attribute',
-                field: column,
-                from: option?.value,
-                to: value
-            })
+            if (option?.value !== value) {
+                await addActivity(task, req.user, {
+                    type: 'attribute',
+                    field: column,
+                    from: option?.value,
+                    to: value
+                })
+            }
             if (option) option.value = value
             else options.push({ column, value })
         } else if (type === 'text') {
@@ -135,12 +137,14 @@ router.delete(
             options.find(x => x.column.toString() === optionId)
         )
 
-        await addActivity(task, req.user, {
-            type: 'attribute',
-            field: optionId,
-            from: options[optionIndex].value,
-            to: null
-        })
+        if (options[optionIndex]) {
+            await addActivity(task, req.user, {
+                type: 'attribute',
+                field: optionId,
+                from: options[optionIndex].value,
+                to: null
+            })
+        }
 
         if (optionIndex >= 0) options.splice(optionIndex, 1)
 
