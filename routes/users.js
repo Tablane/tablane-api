@@ -314,6 +314,7 @@ router.post(
             success: true,
             accessToken: createAccessToken(user._id),
             user: {
+                email: user.email,
                 username: user.username,
                 workspaces: user.workspaces,
                 _id: user._id,
