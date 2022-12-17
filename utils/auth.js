@@ -19,7 +19,7 @@ exports.sendRefreshToken = (res, token) => {
         httpOnly: true,
         secure: true,
         sameSite: 'Strict',
-        maxAge: 1000 * 60 * 60 * 24,
+        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
         path: '/api/user/refresh'
     })
 }
@@ -28,7 +28,7 @@ exports.createRefreshTokenDoc = (req, token, user) => {
     const ua = parser(req.headers['user-agent'])
 
     return new RefreshToken({
-        expiresAt: Date.now() + 1000 * 60 * 60 * 24,
+        expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
         token,
         user,
         device: `${ua.browser.name} on ${ua.os.name}`,
