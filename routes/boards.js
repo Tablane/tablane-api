@@ -323,154 +323,166 @@ router.get(
     '/share/:boardId',
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
-        const board = await Board.findById(boardId).populate({
-            path: 'tasks',
-            populate: [
-                {
-                    path: 'watcher',
+        const board = await Board.findById(boardId).populate([
+            {
+                path: 'tasks',
+                populate: [
+                    {
+                        path: 'watcher',
+                        select: 'username'
+                    },
+                    {
+                        path: 'history'
+                    },
+                    {
+                        path: 'comments',
+                        populate: 'replies'
+                    },
+                    {
+                        path: 'subtasks',
+                        populate: [
+                            {
+                                path: 'subtasks',
+                                populate: [
+                                    {
+                                        path: 'subtasks',
+                                        populate: [
+                                            {
+                                                path: 'subtasks',
+                                                populate: [
+                                                    {
+                                                        path: 'subtasks',
+                                                        populate: [
+                                                            {
+                                                                path: 'subtasks',
+                                                                populate: [
+                                                                    {
+                                                                        path: 'subtasks',
+                                                                        populate:
+                                                                            [
+                                                                                {
+                                                                                    path: 'subtasks',
+                                                                                    populate:
+                                                                                        [
+                                                                                            {
+                                                                                                path: 'watcher',
+                                                                                                select: 'username'
+                                                                                            },
+                                                                                            {
+                                                                                                path: 'history'
+                                                                                            },
+                                                                                            {
+                                                                                                path: 'comments',
+                                                                                                populate:
+                                                                                                    'replies'
+                                                                                            }
+                                                                                        ]
+                                                                                },
+                                                                                {
+                                                                                    path: 'watcher',
+                                                                                    select: 'username'
+                                                                                },
+                                                                                {
+                                                                                    path: 'history'
+                                                                                },
+                                                                                {
+                                                                                    path: 'comments',
+                                                                                    populate:
+                                                                                        'replies'
+                                                                                }
+                                                                            ]
+                                                                    },
+                                                                    {
+                                                                        path: 'watcher',
+                                                                        select: 'username'
+                                                                    },
+                                                                    {
+                                                                        path: 'history'
+                                                                    },
+                                                                    {
+                                                                        path: 'comments',
+                                                                        populate:
+                                                                            'replies'
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                path: 'watcher',
+                                                                select: 'username'
+                                                            },
+                                                            {
+                                                                path: 'history'
+                                                            },
+                                                            {
+                                                                path: 'comments',
+                                                                populate:
+                                                                    'replies'
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        path: 'watcher',
+                                                        select: 'username'
+                                                    },
+                                                    {
+                                                        path: 'history'
+                                                    },
+                                                    {
+                                                        path: 'comments',
+                                                        populate: 'replies'
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                path: 'watcher',
+                                                select: 'username'
+                                            },
+                                            {
+                                                path: 'history'
+                                            },
+                                            {
+                                                path: 'comments',
+                                                populate: 'replies'
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        path: 'watcher',
+                                        select: 'username'
+                                    },
+                                    {
+                                        path: 'history'
+                                    },
+                                    {
+                                        path: 'comments',
+                                        populate: 'replies'
+                                    }
+                                ]
+                            },
+                            {
+                                path: 'watcher',
+                                select: 'username'
+                            },
+                            {
+                                path: 'history'
+                            },
+                            {
+                                path: 'comments',
+                                populate: 'replies'
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                path: 'workspace',
+                select: 'members.user',
+                populate: {
+                    path: 'members.user',
                     select: 'username'
-                },
-                {
-                    path: 'history'
-                },
-                {
-                    path: 'comments',
-                    populate: 'replies'
-                },
-                {
-                    path: 'subtasks',
-                    populate: [
-                        {
-                            path: 'subtasks',
-                            populate: [
-                                {
-                                    path: 'subtasks',
-                                    populate: [
-                                        {
-                                            path: 'subtasks',
-                                            populate: [
-                                                {
-                                                    path: 'subtasks',
-                                                    populate: [
-                                                        {
-                                                            path: 'subtasks',
-                                                            populate: [
-                                                                {
-                                                                    path: 'subtasks',
-                                                                    populate: [
-                                                                        {
-                                                                            path: 'subtasks',
-                                                                            populate:
-                                                                                [
-                                                                                    {
-                                                                                        path: 'watcher',
-                                                                                        select: 'username'
-                                                                                    },
-                                                                                    {
-                                                                                        path: 'history'
-                                                                                    },
-                                                                                    {
-                                                                                        path: 'comments',
-                                                                                        populate:
-                                                                                            'replies'
-                                                                                    }
-                                                                                ]
-                                                                        },
-                                                                        {
-                                                                            path: 'watcher',
-                                                                            select: 'username'
-                                                                        },
-                                                                        {
-                                                                            path: 'history'
-                                                                        },
-                                                                        {
-                                                                            path: 'comments',
-                                                                            populate:
-                                                                                'replies'
-                                                                        }
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    path: 'watcher',
-                                                                    select: 'username'
-                                                                },
-                                                                {
-                                                                    path: 'history'
-                                                                },
-                                                                {
-                                                                    path: 'comments',
-                                                                    populate:
-                                                                        'replies'
-                                                                }
-                                                            ]
-                                                        },
-                                                        {
-                                                            path: 'watcher',
-                                                            select: 'username'
-                                                        },
-                                                        {
-                                                            path: 'history'
-                                                        },
-                                                        {
-                                                            path: 'comments',
-                                                            populate: 'replies'
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    path: 'watcher',
-                                                    select: 'username'
-                                                },
-                                                {
-                                                    path: 'history'
-                                                },
-                                                {
-                                                    path: 'comments',
-                                                    populate: 'replies'
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            path: 'watcher',
-                                            select: 'username'
-                                        },
-                                        {
-                                            path: 'history'
-                                        },
-                                        {
-                                            path: 'comments',
-                                            populate: 'replies'
-                                        }
-                                    ]
-                                },
-                                {
-                                    path: 'watcher',
-                                    select: 'username'
-                                },
-                                {
-                                    path: 'history'
-                                },
-                                {
-                                    path: 'comments',
-                                    populate: 'replies'
-                                }
-                            ]
-                        },
-                        {
-                            path: 'watcher',
-                            select: 'username'
-                        },
-                        {
-                            path: 'history'
-                        },
-                        {
-                            path: 'comments',
-                            populate: 'replies'
-                        }
-                    ]
                 }
-            ]
-        })
+            }
+        ])
 
         if (!board.sharing) return res.status(403).send('Forbidden')
         res.json(board)
