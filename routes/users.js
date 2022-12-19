@@ -537,6 +537,35 @@ router.patch(
     isLoggedIn,
     isSudoMode,
     wrapAsync(async (req, res) => {
+        const { username, email, password } = req.body
+        const user = await User.findById(req.user._id)
+
+        if (password !== '') {
+            if (password.length < 8) {
+                throw new AppError(
+                    'Password has to be atleast 8 characters long',
+                    400,
+                    {
+                        friendlyError: true
+                    }
+                )
+            } else {
+                user.password = await bcrypt.hashSync(password, 12)
+            }
+        }
+        if (username.length < 3) {
+            throw new AppError(
+                'Name has to be atleast 3 characters long',
+                400,
+                {
+                    friendlyError: true
+                }
+            )
+        } else {
+            user.username = username
+        }
+
+        await user.save()
         res.json({ success: true, message: 'Successfully updated profile' })
     })
 )
@@ -741,7 +770,8 @@ router.post(
         const user = await User.findById(req.user._id)
 
         const valid = await bcrypt.compareSync(password, user.password)
-        if (!valid) throw new AppError('Invalid password', 400)
+        if (!valid)
+            throw new AppError('Invalid password', 400, { friendlyError: true })
 
         res.json({
             success: true,
