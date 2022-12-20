@@ -27,14 +27,14 @@ router.post(
 
         task.comments.unshift(comment)
 
-        // const io = req.app.get('socketio')
-        // io.to(boardId)
-        //     .except(req.user._id.toString())
-        //     .emit(boardId, {
-        //         event: 'addTaskComment',
-        //         id: boardId,
-        //         body: { text, author: req.user.username, taskId }
-        //     })
+        const io = req.app.get('socketio')
+        io.to(task.board.toString())
+            .except(req.user._id.toString())
+            .emit(task.board.toString(), {
+                event: 'addTaskComment',
+                id: task.board,
+                body: { content, author: req.user.username, taskId }
+            })
 
         await comment.save()
         await task.save()
@@ -59,14 +59,17 @@ router.delete(
 
         await Comment.deleteMany({ _id: { $in: comment.replies } })
 
-        // const io = req.app.get('socketio')
-        // io.to(boardId)
-        //     .except(req.user._id.toString())
-        //     .emit(boardId, {
-        //         event: 'addTaskComment',
-        //         id: boardId,
-        //         body: { text, author: req.user.username, taskId }
-        //     })
+        const io = req.app.get('socketio')
+        io.to(comment.task.board.toString())
+            .except(req.user._id.toString())
+            .emit(comment.task.board.toString(), {
+                event: 'deleteTaskComment',
+                id: comment.task.board,
+                body: {
+                    commentId,
+                    taskId: comment.task._id
+                }
+            })
 
         await comment.task.save()
         res.json({ success: true, message: 'OK' })
@@ -81,18 +84,22 @@ router.put(
     wrapAsync(async (req, res) => {
         const { commentId } = req.params
         const { content } = req.body
-        const comment = await Comment.findById(commentId)
+        const comment = await Comment.findById(commentId).populate('task')
 
         comment.content = content
 
-        // const io = req.app.get('socketio')
-        // io.to(boardId)
-        //     .except(req.user._id.toString())
-        //     .emit(boardId, {
-        //         event: 'addTaskComment',
-        //         id: boardId,
-        //         body: { text, author: req.user.username, taskId }
-        //     })
+        const io = req.app.get('socketio')
+        io.to(comment.task.board.toString())
+            .except(req.user._id.toString())
+            .emit(comment.task.board.toString(), {
+                event: 'editTaskComment',
+                id: comment.task.board,
+                body: {
+                    commentId,
+                    taskId: comment.task._id,
+                    content
+                }
+            })
 
         await comment.save()
         res.json({ success: true, message: 'OK' })
@@ -107,10 +114,7 @@ router.post(
     wrapAsync(async (req, res) => {
         const { taskId, commentId } = req.params
         const { content } = req.body
-        const comment = await Comment.findById(commentId).populate({
-            path: 'task',
-            select: 'watcher'
-        })
+        const comment = await Comment.findById(commentId).populate('task')
 
         addWatcher(comment.task, req.user)
 
@@ -124,14 +128,19 @@ router.post(
 
         comment.replies.push(reply)
 
-        // const io = req.app.get('socketio')
-        // io.to(boardId)
-        //     .except(req.user._id.toString())
-        //     .emit(boardId, {
-        //         event: 'addTaskComment',
-        //         id: boardId,
-        //         body: { text, author: req.user.username, taskId }
-        //     })
+        const io = req.app.get('socketio')
+        io.to(comment.task.board.toString())
+            .except(req.user._id.toString())
+            .emit(comment.task.board.toString(), {
+                event: 'addReply',
+                id: comment.task.board,
+                body: {
+                    taskId,
+                    author: req.user.username,
+                    commentId,
+                    content
+                }
+            })
 
         await comment.save()
         await reply.save()
@@ -148,18 +157,22 @@ router.delete(
     wrapAsync(async (req, res) => {
         const { commentId, replyId } = req.params
         await Comment.findByIdAndRemove(replyId)
-        const comment = await Comment.findById(commentId)
+        const comment = await Comment.findById(commentId).populate('task')
 
         comment.replies = comment.replies.filter(x => x.toString() !== replyId)
 
-        // const io = req.app.get('socketio')
-        // io.to(boardId)
-        //     .except(req.user._id.toString())
-        //     .emit(boardId, {
-        //         event: 'addTaskComment',
-        //         id: boardId,
-        //         body: { text, author: req.user.username, taskId }
-        //     })
+        const io = req.app.get('socketio')
+        io.to(comment.task.board.toString())
+            .except(req.user._id.toString())
+            .emit(comment.task.board.toString(), {
+                event: 'deleteReply',
+                id: comment.task.board,
+                body: {
+                    taskId: comment.task._id,
+                    replyId,
+                    commentId
+                }
+            })
 
         await comment.save()
         res.json({ success: true, message: 'OK' })
@@ -174,18 +187,22 @@ router.put(
     wrapAsync(async (req, res) => {
         const { replyId } = req.params
         const { content } = req.body
-        const reply = await Comment.findById(replyId)
+        const reply = await Comment.findById(replyId).populate('task')
 
         reply.content = content
 
-        // const io = req.app.get('socketio')
-        // io.to(boardId)
-        //     .except(req.user._id.toString())
-        //     .emit(boardId, {
-        //         event: 'addTaskComment',
-        //         id: boardId,
-        //         body: { text, author: req.user.username, taskId }
-        //     })
+        const io = req.app.get('socketio')
+        io.to(reply.task.board.toString())
+            .except(req.user._id.toString())
+            .emit(reply.task.board.toString(), {
+                event: 'editReply',
+                id: reply.task.board,
+                body: {
+                    taskId: reply.task._id,
+                    replyId,
+                    content
+                }
+            })
 
         await reply.save()
         res.json({ success: true, message: 'OK' })
