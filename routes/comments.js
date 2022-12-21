@@ -11,12 +11,13 @@ router.post(
     hasPermission('CREATE:COMMENT'),
     wrapAsync(async (req, res) => {
         const { taskId } = req.params
-        const { content } = req.body
+        const { content, _id } = req.body
         const task = await Task.findById(taskId)
 
         addWatcher(task, req.user)
 
         const comment = new Comment({
+            _id,
             type: 'comment',
             author: req.user,
             timestamp: new Date().getTime(),
@@ -33,7 +34,7 @@ router.post(
             .emit(task.board.toString(), {
                 event: 'addTaskComment',
                 id: task.board,
-                body: { content, author: req.user.username, taskId }
+                body: { content, author: req.user.username, taskId, _id }
             })
 
         await comment.save()
@@ -113,12 +114,13 @@ router.post(
     hasPermission('CREATE:COMMENT'),
     wrapAsync(async (req, res) => {
         const { taskId, commentId } = req.params
-        const { content } = req.body
+        const { content, _id } = req.body
         const comment = await Comment.findById(commentId).populate('task')
 
         addWatcher(comment.task, req.user)
 
         const reply = new Comment({
+            _id,
             type: 'reply',
             author: req.user,
             timestamp: new Date().getTime(),
@@ -138,7 +140,8 @@ router.post(
                     taskId,
                     author: req.user.username,
                     commentId,
-                    content
+                    content,
+                    _id
                 }
             })
 
