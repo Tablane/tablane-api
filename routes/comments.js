@@ -181,11 +181,11 @@ router.delete(
 
 // edit reply
 router.put(
-    '/reply/:taskId/:replyId',
+    '/reply/:taskId/:commentId/:replyId',
     isLoggedIn,
     hasPermission('CREATE:COMMENT'),
     wrapAsync(async (req, res) => {
-        const { replyId } = req.params
+        const { replyId, commentId } = req.params
         const { content } = req.body
         const reply = await Comment.findById(replyId).populate('task')
 
@@ -199,6 +199,7 @@ router.put(
                 id: reply.task.board,
                 body: {
                     taskId: reply.task._id,
+                    commentId,
                     replyId,
                     content
                 }
