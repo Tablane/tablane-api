@@ -4,13 +4,13 @@ const RefreshToken = require('../models/refreshToken')
 
 exports.createAccessToken = (_id, sudoMode = false) => {
     return sign({ user: { _id, sudoMode } }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: '15m'
+        expiresIn: '1h'
     })
 }
 
 exports.createRefreshToken = async _id => {
     return await sign({ user: { _id } }, process.env.REFRESH_TOKEN_SECRET, {
-        expiresIn: '24h'
+        expiresIn: '30d'
     })
 }
 
