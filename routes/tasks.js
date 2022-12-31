@@ -35,6 +35,48 @@ router.post(
     })
 )
 
+// get filtered tasks
+router.post(
+    '/getAssignedTasks/:workspaceId',
+    isLoggedIn,
+    hasPermission('READ:PUBLIC'),
+    wrapAsync(async (req, res) => {
+        const { workspaceId } = req.params
+        const { filter } = req.body
+
+        const tasks = await Task.find({
+            workspace: workspaceId,
+            ...filter
+        }).populate([
+            {
+                path: 'watcher',
+                select: 'username'
+            },
+            {
+                path: 'history'
+            },
+            {
+                path: 'comments',
+                populate: 'replies'
+            },
+            {
+                path: 'workspace',
+                select: ['name', 'id']
+            },
+            {
+                path: 'board',
+                select: ['space', 'name'],
+                populate: {
+                    path: 'space',
+                    select: 'name'
+                }
+            }
+        ])
+
+        res.json(tasks)
+    })
+)
+
 // remove watcher from task
 router.delete(
     '/watcher/:taskId',
