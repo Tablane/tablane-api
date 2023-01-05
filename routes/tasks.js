@@ -396,13 +396,14 @@ router.delete(
         ])
 
         if (task.level === 0) {
-            const taskIndex = task.board.tasks.indexOf(task)
-            task.board.tasks.splice(taskIndex, 1)
-
+            task.board.tasks = task.board.tasks.filter(
+                x => x.toString() !== task._id.toString()
+            )
             await task.board.save()
         } else {
-            const taskIndex = task.parentTask.subtasks.indexOf(task)
-            task.parentTask.subtasks.splice(taskIndex, 1)
+            task.parentTask.subtasks = task.parentTask.subtasks.filter(
+                x => x.toString() !== task._id.toString()
+            )
 
             await task.parentTask.save()
         }
