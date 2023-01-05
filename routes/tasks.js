@@ -399,27 +399,20 @@ router.delete(
             const taskIndex = task.board.tasks.indexOf(task)
             task.board.tasks.splice(taskIndex, 1)
 
-            const io = req.app.get('socketio')
-            io.to(boardId).except(req.user._id.toString()).emit(boardId, {
-                event: 'deleteTask',
-                id: boardId,
-                body: { taskId }
-            })
-
             await task.board.save()
         } else {
             const taskIndex = task.parentTask.subtasks.indexOf(task)
             task.parentTask.subtasks.splice(taskIndex, 1)
 
-            // const io = req.app.get('socketio')
-            // io.to(boardId).except(req.user._id.toString()).emit(boardId, {
-            //     event: 'deleteTask',
-            //     id: boardId,
-            //     body: { taskId }
-            // })
-
             await task.parentTask.save()
         }
+
+        const io = req.app.get('socketio')
+        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            event: 'deleteTask',
+            id: boardId,
+            body: { taskId }
+        })
 
         await Task.findByIdAndDelete(taskId)
         res.json({ success: true, message: 'OK' })
