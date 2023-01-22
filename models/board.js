@@ -24,6 +24,7 @@ const boardSchema = new Schema({
             ref: 'Task'
         }
     ],
+    filters: Schema.Types.Mixed,
     groupBy: String,
     attributes: [
         {
