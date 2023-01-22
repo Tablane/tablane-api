@@ -108,7 +108,6 @@ router.get(
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const filters = (await Board.findById(boardId)).filters
-        console.log({ filters, match: transformFilters(filters) })
         const board = await Board.findById(boardId).populate({
             path: 'tasks',
             match: transformFilters(filters),
