@@ -10,6 +10,96 @@ const {
 } = require('../middleware')
 const PermissionError = require('../PermissionError')
 
+const removeEmptyArrays = obj => {
+    for (const key in obj) {
+        if (Array.isArray(obj[key]) && obj[key].length === 0) {
+            delete obj[key]
+        } else if (typeof obj[key] === 'object') {
+            obj[key] = removeEmptyArrays(obj[key])
+        }
+    }
+    return obj
+}
+
+const transformFilters = filters => {
+    let transformedFilters = { $or: [] }
+    let currentGroup = { $and: [] }
+    if (
+        !filters ||
+        !filters.every(({ column, operation, value }) => {
+            return (
+                column &&
+                operation &&
+                (value || ['Is set', 'Is not set'].includes(operation))
+            )
+        })
+    ) {
+        return {}
+    }
+
+    filters.map(({ column, filterAnd, operation, value }, index) => {
+        let condition
+        if (operation === 'Is not set') {
+            condition = {
+                'options.column': {
+                    $ne: column._id
+                }
+            }
+        } else if (operation === 'Is set') {
+            condition = { [column._id]: { $exists: true } }
+            condition = {
+                $and: [
+                    {
+                        'options.column': column._id
+                    }
+                ]
+            }
+        } else if (operation === 'Is') {
+            condition = {
+                $and: [
+                    {
+                        'options.column': column._id
+                    },
+                    {
+                        'options.value': value._id
+                    }
+                ]
+            }
+        } else if (operation === 'Is not') {
+            condition = {
+                $or: [
+                    {
+                        $and: [
+                            {
+                                'options.column': column._id
+                            },
+                            {
+                                'options.value': {
+                                    $ne: value?._id
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        'options.column': {
+                            $ne: column._id
+                        }
+                    }
+                ]
+            }
+        }
+
+        if (!filterAnd && index !== 0) {
+            transformedFilters.$or.push(currentGroup)
+            currentGroup = { $and: [] }
+        }
+        currentGroup.$and.push(condition)
+    })
+
+    transformedFilters.$or.push(currentGroup)
+    return removeEmptyArrays(transformedFilters)
+}
+
 // get board info
 router.get(
     '/:boardId',
@@ -17,8 +107,10 @@ router.get(
     hasPermission('READ:PUBLIC'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
+        const filters = (await Board.findById(boardId)).filters
         const board = await Board.findById(boardId).populate({
             path: 'tasks',
+            match: transformFilters(filters),
             populate: [
                 {
                     path: 'watcher',
@@ -660,6 +752,32 @@ router.delete(
             })
 
         await space.save()
+        res.json({ success: true, message: 'OK' })
+    })
+)
+
+// set board filters
+router.put(
+    '/:boardId',
+    isLoggedIn,
+    hasPermission('MANAGE:VIEW'),
+    wrapAsync(async (req, res) => {
+        const { boardId } = req.params
+        const { filters } = req.body
+        const board = await Board.findById(boardId)
+
+        board.filters = filters
+
+        // const io = req.app.get('socketio')
+        // io.to(board.workspace.id.toString())
+        //     .except(req.user._id.toString())
+        //     .emit(board.workspace.id.toString(), {
+        //         event: 'deleteBoard',
+        //         id: board.workspace.id.toString(),
+        //         body: { spaceId, boardId }
+        //     })
+
+        await board.save()
         res.json({ success: true, message: 'OK' })
     })
 )
