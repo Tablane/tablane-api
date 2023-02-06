@@ -37,55 +37,64 @@ const transformFilters = filters => {
         return {}
     }
 
-    filters.map(({ column, filterAnd, operation, value }, index) => {
+    filters.map(({ column, filterAnd, operation, value, type }, index) => {
         let condition
         if (operation === 'Is not set') {
             condition = {
-                'options.column': {
-                    $ne: column._id
-                }
-            }
-        } else if (operation === 'Is set') {
-            condition = { [column._id]: { $exists: true } }
-            condition = {
-                $and: [
-                    {
-                        'options.column': column._id
-                    }
-                ]
-            }
-        } else if (operation === 'Is') {
-            condition = {
-                $and: [
-                    {
-                        'options.column': column._id
-                    },
-                    {
-                        'options.value': value._id
-                    }
-                ]
-            }
-        } else if (operation === 'Is not') {
-            condition = {
                 $or: [
                     {
-                        $and: [
-                            {
-                                'options.column': column._id
-                            },
-                            {
-                                'options.value': {
-                                    $ne: value?._id
+                        options: {
+                            $not: {
+                                $elemMatch: {
+                                    column
                                 }
                             }
-                        ]
+                        }
                     },
                     {
-                        'options.column': {
-                            $ne: column._id
+                        options: {
+                            $not: {
+                                $elemMatch: {
+                                    column,
+                                    ...(type === 'people'
+                                        ? { value: { $not: { $size: 0 } } }
+                                        : {})
+                                }
+                            }
                         }
                     }
                 ]
+            }
+        } else if (operation === 'Is set') {
+            condition = {
+                options: {
+                    $elemMatch: {
+                        column,
+                        ...(type === 'people'
+                            ? { value: { $not: { $size: 0 } } }
+                            : {})
+                    }
+                }
+            }
+        } else if (operation === 'Is') {
+            condition = {
+                options: {
+                    $elemMatch: {
+                        column,
+                        value
+                    }
+                }
+            }
+        } else if (operation === 'Is not') {
+            condition = {
+                options: {
+                    $not: {
+                        $elemMatch: {
+                            column,
+                            value
+                        }
+                    }
+                }
             }
         }
 
