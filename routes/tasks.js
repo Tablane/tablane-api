@@ -6,6 +6,7 @@ const Board = require('../models/board')
 const Activity = require('../models/activity')
 const { addActivity } = require('../controllers/activities')
 const { addWatcher } = require('../utils/addWatcher')
+const { pusherTrigger } = require('../utils/pusherTrigger')
 
 // add new watcher to task
 router.post(
@@ -21,14 +22,12 @@ router.post(
         task.watcher.addToSet(userId)
         await addActivity(task, req.user, { type: 'add_watcher' }, userId)
 
-        const io = req.app.get('socketio')
-        io.to(task.board.toString())
-            .except(req.user._id.toString())
-            .emit(task.board, {
-                event: 'addWatcher',
-                id: task.board,
-                body: { task, user: { username: user.username, _id: user._id } }
-            })
+        pusherTrigger({
+            req,
+            boardId: task.board,
+            event: 'addWatcher',
+            body: { task, user: { username: user.username, _id: user._id } }
+        })
 
         await task.save()
         res.json({ success: true, message: 'OK' })
@@ -91,14 +90,12 @@ router.delete(
         task.watcher.remove(userId)
         await addActivity(task, req.user, { type: 'remove_watcher' }, userId)
 
-        const io = req.app.get('socketio')
-        io.to(task.board.toString())
-            .except(req.user._id.toString())
-            .emit(task.board, {
-                event: 'removeWatcher',
-                id: task.board,
-                body: { task, user: { username: user.username, _id: user._id } }
-            })
+        pusherTrigger({
+            req,
+            boardId: task.board,
+            event: 'removeWatcher',
+            body: { task, user: { username: user.username, _id: user._id } }
+        })
 
         await task.save()
         res.json({ success: true, message: 'OK' })
@@ -151,10 +148,10 @@ router.patch(
             else options.push({ column, value })
         }
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
-            event: 'editOptionsTask',
-            id: boardId,
+        pusherTrigger({
+            req,
+            boardId,
+            event: 'editTaskField',
             body: { column, value, type, taskId }
         })
 
@@ -190,10 +187,10 @@ router.delete(
 
         if (optionIndex >= 0) options.splice(optionIndex, 1)
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+        pusherTrigger({
+            req,
+            boardId,
             event: 'clearStatusTask',
-            id: boardId,
             body: { taskId, optionId }
         })
 
@@ -208,8 +205,8 @@ router.post(
     isLoggedIn,
     hasPermission('MANAGE:TASK'),
     wrapAsync(async (req, res) => {
-        const { boardId, taskId } = req.params
-        const { name, taskGroupId, _id } = req.body
+        const { taskId } = req.params
+        const { name, _id } = req.body
         const task = await Task.findById(taskId)
 
         const newTaskActivity = new Activity({
@@ -362,19 +359,17 @@ router.post(
 
         board.tasks.push(task)
 
-        const io = req.app.get('socketio')
-        io.to(boardId)
-            .except(req.user._id.toString())
-            .emit(boardId, {
-                event: 'addTask',
-                id: boardId,
-                body: {
-                    newTaskName: name,
-                    taskGroupId,
-                    _id,
-                    author: req.user.username
-                }
-            })
+        pusherTrigger({
+            req,
+            boardId,
+            event: 'addTask',
+            body: {
+                newTaskName: name,
+                taskGroupId,
+                _id,
+                author: req.user.username
+            }
+        })
 
         await task.save()
         await board.save()
@@ -408,10 +403,10 @@ router.delete(
             await task.parentTask.save()
         }
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+        pusherTrigger({
+            req,
+            boardId,
             event: 'deleteTask',
-            id: boardId,
             body: { taskId }
         })
 

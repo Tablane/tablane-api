@@ -9,6 +9,7 @@ const {
     hasPerms
 } = require('../middleware')
 const PermissionError = require('../PermissionError')
+const { pusherTrigger } = require('../utils/pusherTrigger')
 
 const removeEmptyArrays = obj => {
     for (const key in obj) {
@@ -602,13 +603,11 @@ router.patch(
         const board = await Board.findById(boardId)
         board.sharing = share
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+        pusherTrigger({
+            req,
+            boardId: boardId,
             event: 'setSharing',
-            id: boardId,
-            body: {
-                share
-            }
+            body: { share }
         })
 
         await board.save()
@@ -638,14 +637,12 @@ router.patch(
         const [board] = source.boards.splice(result.source.index, 1)
         if (board) destination.boards.splice(result.destination.index, 0, board)
 
-        const io = req.app.get('socketio')
-        io.to(workspace.id.toString())
-            .except(req.user._id.toString())
-            .emit(workspace.id.toString(), {
-                event: 'sortBoard',
-                id: workspace.id,
-                body: { result }
-            })
+        pusherTrigger({
+            req,
+            workspaceId: workspace.id,
+            event: 'sortBoard',
+            body: { result }
+        })
 
         await source.save()
         await destination.save()
@@ -677,14 +674,12 @@ router.post(
         })
         space.boards.push(board)
 
-        const io = req.app.get('socketio')
-        io.to(workspace.id.toString())
-            .except(req.user._id.toString())
-            .emit(workspace.id.toString(), {
-                event: 'addBoard',
-                id: workspace.id,
-                body: { spaceId, name, _id }
-            })
+        pusherTrigger({
+            req,
+            workspaceId: workspace.id,
+            event: 'addBoard',
+            body: { spaceId, name, _id }
+        })
 
         await space.save()
         await board.save()
@@ -709,24 +704,22 @@ router.patch(
                 throw new PermissionError('MANAGE:SHARING')
             board.name = name
 
-            const io = req.app.get('socketio')
-            io.to(board.workspace.id.toString())
-                .except(req.user._id.toString())
-                .emit(board.workspace.id.toString(), {
-                    event: 'editBoardName',
-                    id: board.workspace.id.toString(),
-                    body: { spaceId: board.space, boardId, name }
-                })
+            pusherTrigger({
+                req,
+                workspaceId: board.workspace.id,
+                event: 'editBoardName',
+                body: { spaceId: board.space, boardId, name }
+            })
         }
         if (groupBy) {
             if (!hasPerms(board.workspace, req.user, 'MANAGE:VIEW'))
                 throw new PermissionError('MANAGE:VIEW')
             board.groupBy = groupBy
 
-            const io = req.app.get('socketio')
-            io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+            pusherTrigger({
+                req,
+                boardId,
                 event: 'setGroupBy',
-                id: boardId,
                 body: { groupBy }
             })
         }
@@ -751,14 +744,12 @@ router.delete(
 
         space.boards.remove(boardId)
 
-        const io = req.app.get('socketio')
-        io.to(board.workspace.id.toString())
-            .except(req.user._id.toString())
-            .emit(board.workspace.id.toString(), {
-                event: 'deleteBoard',
-                id: board.workspace.id.toString(),
-                body: { spaceId, boardId }
-            })
+        pusherTrigger({
+            req,
+            workspaceId: board.workspace.id,
+            event: 'deleteBoard',
+            body: { spaceId, boardId }
+        })
 
         await space.save()
         res.json({ success: true, message: 'OK' })
@@ -777,14 +768,12 @@ router.put(
 
         board.filters = filters
 
-        // const io = req.app.get('socketio')
-        // io.to(board.workspace.id.toString())
-        //     .except(req.user._id.toString())
-        //     .emit(board.workspace.id.toString(), {
-        //         event: 'deleteBoard',
-        //         id: board.workspace.id.toString(),
-        //         body: { spaceId, boardId }
-        //     })
+        pusherTrigger({
+            req,
+            boardId,
+            event: 'setBoardFilters',
+            body: { filters }
+        })
 
         await board.save()
         res.json({ success: true, message: 'OK' })

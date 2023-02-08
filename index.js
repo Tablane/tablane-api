@@ -15,13 +15,12 @@ const notification = require('./routes/notifications')
 const roles = require('./routes/roles')
 const comments = require('./routes/comments')
 const http = require('http').createServer(app)
-const { Server } = require('socket.io')
 const { rateLimit } = require('./utils/rateLimit')
-const AppError = require('./HttpError')
-const { verify } = require('jsonwebtoken')
-const User = require('./models/user')
 const Board = require('./models/board')
 const Workspace = require('./models/workspace')
+const { wrapAsync, isLoggedIn } = require('./middleware')
+const PermissionError = require('./PermissionError')
+const pusher = require('./pusher')
 
 dotenv.config()
 mongoose.connect(process.env.DB_CONNECT, {}, () =>
@@ -33,12 +32,10 @@ const corsOptions = {
     credentials: true,
     maxAge: 86400
 }
-const io = new Server(http, { cors: corsOptions })
 
 // middleware
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
-app.set('socketio', io)
 app.set('trust proxy', 1)
 app.use(cookieParser(process.env.COOKIE_SECRET))
 app.use(cors(corsOptions))
@@ -69,60 +66,55 @@ app.get('/api/status', (req, res) => {
     })
 })
 
-io.use(async (socket, next) => {
-    const authorization = socket.handshake.headers['authorization']
-    if (!authorization) return next(new AppError('Invalid access tokens', 403))
+app.post(
+    '/api/pusher/auth',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        const { socket_id, channel_name } = req.body
 
-    try {
-        const token = authorization.split(' ')[1]
-        const payload = verify(token, process.env.ACCESS_TOKEN_SECRET)
-        const user = await User.findById(payload.user._id)
-
-        socket.join(user._id.toString())
-        socket.user = {
-            username: user.username,
-            _id: user._id
-        }
-    } catch (err) {
-        return next(new AppError('Invalid access token', 403))
-    }
-    next()
-})
-
-io.on('connect', socket => {
-    socket.on('subscribe', async ({ room, type }) => {
         try {
-            let user
+            const type = channel_name.split('-')[1]
+            const id = channel_name.split('-')[2]
+
             if (type === 'board') {
-                const board = await Board.findById(room).populate({
+                const board = await Board.findById(id).populate({
                     path: 'workspace',
                     populate: 'members'
                 })
-                user = board.workspace.members.find(
-                    x => x.user.toString() === socket.user._id.toString()
+                const localUser = board.workspace.members.find(
+                    x => x.user.toString() === req.user._id.toString()
                 )
+                if (!localUser) throw new PermissionError('READ:PUBLIC')
             } else if (type === 'workspace') {
                 const workspace = await Workspace.findOne({
-                    id: room
+                    id
                 }).populate('members')
-                user = workspace.members.find(
-                    x => x.user.toString() === socket.user._id.toString()
+                const localUser = workspace.members.find(
+                    x => x.user.toString() === req.user._id.toString()
                 )
+                if (!localUser) throw new PermissionError('READ:PUBLIC')
+            } else {
+                throw new PermissionError('READ:PUBLIC')
             }
-            if (user) {
-                socket.join(room)
-                socket.emit('message', 'successfully joined room')
-            }
+
+            const channelAuthResponse = pusher.authorizeChannel(
+                socket_id,
+                channel_name,
+                {
+                    user_id: req.user._id,
+                    user_info: {
+                        name: req.user.username,
+                        email: req.user.email
+                    }
+                }
+            )
+
+            res.send(channelAuthResponse)
         } catch (err) {
-            console.log(err)
+            throw new PermissionError('READ:PUBLIC')
         }
     })
-
-    socket.on('unsubscribe', room => {
-        socket.leave(room)
-        socket.emit('message', 'successfully left room')
-    })
-})
+)
 
 app.use((err, req, res, next) => {
     const {
