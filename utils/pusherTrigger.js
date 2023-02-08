@@ -1,5 +1,6 @@
 const pusher = require('../pusher')
-exports.pusherTrigger = ({ req, boardId, workspaceId, event, body }) => {
+
+exports.pusherTrigger = async ({ req, boardId, workspaceId, event, body }) => {
     if (boardId) {
         pusher.trigger('private-board-' + boardId, 'updates', {
             event,
