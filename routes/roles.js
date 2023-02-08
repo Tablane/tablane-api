@@ -1,10 +1,10 @@
 const router = require('express').Router()
 const Workspace = require('../models/workspace')
-const Space = require('../models/space')
 const Board = require('../models/board')
 const Role = require('../models/role')
 const { wrapAsync, isLoggedIn, hasPermission } = require('../middleware')
 const AppError = require('../HttpError')
+const { pusherTrigger } = require('../utils/pusherTrigger')
 
 // create new role
 router.post(
@@ -24,14 +24,12 @@ router.post(
         })
         workspace.roles.push(role)
 
-        // const io = req.app.get('socketio')
-        // io.to(workspace.id.toString())
-        //     .except(req.user._id.toString())
-        //     .emit(workspace.id.toString(), {
-        //         event: 'addRole',
-        //         id: workspace.id.toString(),
-        //         body: { name, _id }
-        //     })
+        pusherTrigger({
+            req,
+            workspaceId: workspace.id,
+            event: 'addRole',
+            body: { name, _id }
+        })
 
         await role.save()
         await workspace.save()
@@ -53,14 +51,12 @@ router.patch(
         const [role] = workspace.roles.splice(result.source.index, 1)
         workspace.roles.splice(result.destination.index, 0, role)
 
-        const io = req.app.get('socketio')
-        io.to(workspace.id.toString())
-            .except(req.user._id.toString())
-            .emit(workspace.id.toString(), {
-                event: 'sortSpace',
-                id: workspace.id.toString(),
-                body: { result }
-            })
+        pusherTrigger({
+            req,
+            workspaceId: workspace.id,
+            event: 'sortSpace',
+            body: { result }
+        })
 
         await workspace.save()
         res.json({ success: true, message: 'OK' })
@@ -115,14 +111,12 @@ router.delete(
         })
         workspace.spaces.splice(spaceIndex, 1)
 
-        const io = req.app.get('socketio')
-        io.to(workspace.id.toString())
-            .except(req.user._id.toString())
-            .emit(workspace.id.toString(), {
-                event: 'deleteSpace',
-                id: workspace.id.toString(),
-                body: { spaceId }
-            })
+        pusherTrigger({
+            req,
+            workspaceId: workspace.id,
+            event: 'deleteSpace',
+            body: { spaceId }
+        })
 
         await workspace.save()
         res.json({ success: true, message: 'OK' })

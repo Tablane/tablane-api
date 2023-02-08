@@ -2,6 +2,7 @@ const router = require('express').Router()
 const Board = require('../models/board')
 const { isLoggedIn, wrapAsync, hasPermission } = require('../middleware')
 const mongoose = require('mongoose')
+const { pusherTrigger } = require('../utils/pusherTrigger')
 
 // create new attribute
 router.post(
@@ -30,10 +31,10 @@ router.post(
         if (type === 'status') attribute.labels = []
         board.attributes.push(attribute)
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+        pusherTrigger({
+            req,
+            boardId: boardId,
             event: 'addAttribute',
-            id: boardId,
             body: { type, _id }
         })
 
@@ -54,10 +55,10 @@ router.patch(
 
         board.attributes.find(x => x._id.toString() === attributeId).name = name
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+        pusherTrigger({
+            req,
+            boardId: boardId,
             event: 'editAttributeName',
-            id: boardId,
             body: { name, attributeId }
         })
 
@@ -80,10 +81,10 @@ router.patch(
         const [attribute] = board.attributes.splice(result.source.index, 1)
         board.attributes.splice(result.destination.index, 0, attribute)
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+        pusherTrigger({
+            req,
+            boardId: boardId,
             event: 'sortAttribute',
-            id: boardId,
             body: { result }
         })
 
@@ -109,10 +110,10 @@ router.put(
                 if (!x._id) return (x._id = new mongoose.Types.ObjectId())
             })
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+        pusherTrigger({
+            req,
+            boardId: boardId,
             event: 'editAttributeLabels',
-            id: boardId,
             body: { name, labels }
         })
 
@@ -142,10 +143,10 @@ router.delete(
             task.save()
         })
 
-        const io = req.app.get('socketio')
-        io.to(boardId).except(req.user._id.toString()).emit(boardId, {
+        pusherTrigger({
+            req,
+            boardId: boardId,
             event: 'deleteAttribute',
-            id: boardId,
             body: { attributeId }
         })
 

@@ -3,6 +3,7 @@ const { isLoggedIn, hasPermission, wrapAsync } = require('../middleware')
 const Task = require('../models/task')
 const Comment = require('../models/comment')
 const { addWatcher } = require('../utils/addWatcher')
+const { pusherTrigger } = require('../utils/pusherTrigger')
 
 // add new comment to Task
 router.post(
@@ -28,14 +29,12 @@ router.post(
 
         task.comments.unshift(comment)
 
-        const io = req.app.get('socketio')
-        io.to(task.board.toString())
-            .except(req.user._id.toString())
-            .emit(task.board.toString(), {
-                event: 'addTaskComment',
-                id: task.board,
-                body: { content, author: req.user.username, taskId, _id }
-            })
+        pusherTrigger({
+            req,
+            boardId: task.board,
+            event: 'addTaskComment',
+            body: { content, author: req.user.username, taskId, _id }
+        })
 
         await comment.save()
         await task.save()
@@ -60,17 +59,12 @@ router.delete(
 
         await Comment.deleteMany({ _id: { $in: comment.replies } })
 
-        const io = req.app.get('socketio')
-        io.to(comment.task.board.toString())
-            .except(req.user._id.toString())
-            .emit(comment.task.board.toString(), {
-                event: 'deleteTaskComment',
-                id: comment.task.board,
-                body: {
-                    commentId,
-                    taskId: comment.task._id
-                }
-            })
+        pusherTrigger({
+            req,
+            boardId: comment.task.board,
+            event: 'deleteTaskComment',
+            body: { commentId, taskId: comment.task._id }
+        })
 
         await comment.task.save()
         res.json({ success: true, message: 'OK' })
@@ -89,18 +83,12 @@ router.put(
 
         comment.content = content
 
-        const io = req.app.get('socketio')
-        io.to(comment.task.board.toString())
-            .except(req.user._id.toString())
-            .emit(comment.task.board.toString(), {
-                event: 'editTaskComment',
-                id: comment.task.board,
-                body: {
-                    commentId,
-                    taskId: comment.task._id,
-                    content
-                }
-            })
+        pusherTrigger({
+            req,
+            boardId: comment.task.board,
+            event: 'editTaskComment',
+            body: { commentId, taskId: comment.task._id, content }
+        })
 
         await comment.save()
         res.json({ success: true, message: 'OK' })
@@ -130,20 +118,18 @@ router.post(
 
         comment.replies.push(reply)
 
-        const io = req.app.get('socketio')
-        io.to(comment.task.board.toString())
-            .except(req.user._id.toString())
-            .emit(comment.task.board.toString(), {
-                event: 'addReply',
-                id: comment.task.board,
-                body: {
-                    taskId,
-                    author: req.user.username,
-                    commentId,
-                    content,
-                    _id
-                }
-            })
+        pusherTrigger({
+            req,
+            boardId: comment.task.board,
+            event: 'addReply',
+            body: {
+                taskId,
+                author: req.user.username,
+                commentId,
+                content,
+                _id
+            }
+        })
 
         await comment.save()
         await reply.save()
@@ -164,18 +150,16 @@ router.delete(
 
         comment.replies = comment.replies.filter(x => x.toString() !== replyId)
 
-        const io = req.app.get('socketio')
-        io.to(comment.task.board.toString())
-            .except(req.user._id.toString())
-            .emit(comment.task.board.toString(), {
-                event: 'deleteReply',
-                id: comment.task.board,
-                body: {
-                    taskId: comment.task._id,
-                    replyId,
-                    commentId
-                }
-            })
+        pusherTrigger({
+            req,
+            boardId: comment.task.board,
+            event: 'deleteReply',
+            body: {
+                taskId: comment.task._id,
+                replyId,
+                commentId
+            }
+        })
 
         await comment.save()
         res.json({ success: true, message: 'OK' })
@@ -194,19 +178,17 @@ router.put(
 
         reply.content = content
 
-        const io = req.app.get('socketio')
-        io.to(reply.task.board.toString())
-            .except(req.user._id.toString())
-            .emit(reply.task.board.toString(), {
-                event: 'editReply',
-                id: reply.task.board,
-                body: {
-                    taskId: reply.task._id,
-                    commentId,
-                    replyId,
-                    content
-                }
-            })
+        pusherTrigger({
+            req,
+            boardId: reply.task.board,
+            event: 'editReply',
+            body: {
+                taskId: reply.task._id,
+                commentId,
+                replyId,
+                content
+            }
+        })
 
         await reply.save()
         res.json({ success: true, message: 'OK' })

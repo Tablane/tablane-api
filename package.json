@@ -27,15 +27,15 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.7.0",
     "otplib": "^12.0.1",
+    "pusher": "^5.1.2",
     "rate-limiter-flexible": "^2.4.1",
-    "socket.io": "^4.5.3",
     "ua-parser-js": "^1.0.32"
   },
   "devDependencies": {
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
-    "prettier": "2.7.1",
-    "nodemon": "2.0.20"
+    "nodemon": "2.0.20",
+    "prettier": "2.7.1"
   },
   "prettier": {
     "tabWidth": 4,
