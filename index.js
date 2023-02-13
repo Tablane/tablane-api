@@ -99,14 +99,7 @@ app.post(
 
             const channelAuthResponse = pusher.authorizeChannel(
                 socket_id,
-                channel_name,
-                {
-                    user_id: req.user._id,
-                    user_info: {
-                        name: req.user.username,
-                        email: req.user.email
-                    }
-                }
+                channel_name
             )
 
             res.send(channelAuthResponse)
