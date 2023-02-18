@@ -8,7 +8,7 @@ const { pusherTrigger } = require('../utils/pusherTrigger')
 router.post(
     '/:boardId/addView',
     isLoggedIn,
-    hasPermission('MANAGE:SHARING'),
+    hasPermission('MANAGE:VIEW'),
     wrapAsync(async (req, res) => {
         const { boardId } = req.params
         const { type } = req.body
@@ -67,6 +67,31 @@ router.post(
         // })
 
         await view.save()
+        await board.save()
+        res.json({ success: true, message: 'OK' })
+    })
+)
+
+// delete view
+router.post(
+    '/:boardId/deleteView',
+    isLoggedIn,
+    hasPermission('MANAGE:VIEW'),
+    wrapAsync(async (req, res) => {
+        const { boardId } = req.params
+        const { viewId } = req.body
+
+        const board = await Board.findById(boardId)
+        board.views = board.views.filter(x => x.toString() !== viewId)
+
+        // pusherTrigger({
+        //     req,
+        //     boardId: boardId,
+        //     event: 'setSharing',
+        //     body: { share }
+        // })
+
+        await View.findByIdAndDelete(viewId)
         await board.save()
         res.json({ success: true, message: 'OK' })
     })
