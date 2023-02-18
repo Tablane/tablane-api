@@ -15,17 +15,21 @@ const boardSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Space'
     },
-    sharing: {
-        type: Boolean
-    },
     tasks: [
         {
             type: Schema.Types.ObjectId,
             ref: 'Task'
         }
     ],
-    filters: Schema.Types.Mixed,
-    groupBy: String,
+    views: [
+        {
+            name: String,
+            id: String,
+            filters: Schema.Types.Mixed,
+            groupBy: String,
+            sharing: Boolean
+        }
+    ],
     attributes: [
         {
             type: { type: String },

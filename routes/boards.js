@@ -112,15 +112,19 @@ const transformFilters = filters => {
 
 // get board info
 router.get(
-    '/:boardId',
+    '/:boardId/:viewId?',
     isLoggedIn,
     hasPermission('READ:PUBLIC'),
     wrapAsync(async (req, res) => {
-        const { boardId } = req.params
-        const filters = (await Board.findById(boardId)).filters
+        const { boardId, viewId } = req.params
+        const filters = async () => {
+            const board = await Board.findById(boardId)
+            if (!viewId) return []
+            return board.views.find(x => x.id === viewId).filters
+        }
         const board = await Board.findById(boardId).populate({
             path: 'tasks',
-            match: transformFilters(filters),
+            match: transformFilters(await filters()),
             populate: [
                 {
                     path: 'watcher',
