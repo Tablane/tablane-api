@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Task = require('./task')
+const View = require('./view')
 const Schema = mongoose.Schema
 
 const boardSchema = new Schema({
@@ -23,11 +24,8 @@ const boardSchema = new Schema({
     ],
     views: [
         {
-            name: String,
-            id: String,
-            filters: Schema.Types.Mixed,
-            groupBy: String,
-            sharing: Boolean
+            type: Schema.Types.ObjectId,
+            ref: 'View'
         }
     ],
     attributes: [
@@ -50,6 +48,7 @@ boardSchema.post('findOneAndDelete', async function (board) {
     if (!board) return
 
     board.tasks.map(async task => await Task.findByIdAndDelete(task))
+    board.views.map(async task => await View.findByIdAndDelete(task))
 })
 
 module.exports = mongoose.model('Board', boardSchema)

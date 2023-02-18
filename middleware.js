@@ -4,6 +4,7 @@ const { verify } = require('jsonwebtoken')
 const AppError = require('./HttpError')
 const User = require('./models/user')
 const Task = require('./models/task')
+const View = require('./models/view')
 const PermissionError = require('./PermissionError')
 
 const wrapAsync = func => {
@@ -26,7 +27,7 @@ const hasPerms = (workspace, user, permission) => {
 
 module.exports.hasPermission = permission => {
     return wrapAsync(async (req, res, next) => {
-        const { boardId, workspaceId, taskId } = req.params
+        const { boardId, workspaceId, taskId, viewId } = req.params
 
         if (boardId) {
             const board = await Board.findById(boardId).populate({
@@ -46,6 +47,17 @@ module.exports.hasPermission = permission => {
                 populate: ['roles', 'members.role']
             })
             if (hasPerms(task.workspace, req.user, permission)) return next()
+        } else if (viewId) {
+            const view = await View.findById(viewId).populate({
+                path: 'board',
+                select: 'workspace',
+                populate: {
+                    path: 'workspace',
+                    populate: ['roles', 'members.role']
+                }
+            })
+            if (hasPerms(view.board.workspace, req.user, permission))
+                return next()
         }
 
         throw new PermissionError(permission)

@@ -2,6 +2,7 @@ const router = require('express').Router()
 const Board = require('../models/board')
 const Workspace = require('../models/workspace')
 const Space = require('../models/space')
+const View = require('../models/view')
 const {
     wrapAsync,
     isLoggedIn,
@@ -118,307 +119,313 @@ router.get(
     wrapAsync(async (req, res) => {
         const { boardId, viewId } = req.params
         const filters = async () => {
-            const board = await Board.findById(boardId)
+            const board = await Board.findById(boardId).populate('views')
             if (!viewId) return []
             return board.views.find(x => x.id === viewId).filters
         }
-        const board = await Board.findById(boardId).populate({
-            path: 'tasks',
-            match: transformFilters(await filters()),
-            populate: [
-                {
-                    path: 'watcher',
-                    select: 'username'
-                },
-                {
-                    path: 'history',
-                    populate: {
-                        path: 'author',
+        const board = await Board.findById(boardId)
+            .populate('views')
+            .populate({
+                path: 'tasks',
+                match: transformFilters(await filters()),
+                populate: [
+                    {
+                        path: 'watcher',
                         select: 'username'
-                    }
-                },
-                {
-                    path: 'comments',
-                    populate: [
-                        {
+                    },
+                    {
+                        path: 'history',
+                        populate: {
                             path: 'author',
                             select: 'username'
-                        },
-                        {
-                            path: 'replies',
-                            populate: {
+                        }
+                    },
+                    {
+                        path: 'comments',
+                        populate: [
+                            {
                                 path: 'author',
                                 select: 'username'
+                            },
+                            {
+                                path: 'replies',
+                                populate: {
+                                    path: 'author',
+                                    select: 'username'
+                                }
                             }
-                        }
-                    ]
-                },
-                {
-                    path: 'subtasks',
-                    populate: [
-                        {
-                            path: 'subtasks',
-                            populate: [
-                                {
-                                    path: 'subtasks',
-                                    populate: [
-                                        {
-                                            path: 'subtasks',
-                                            populate: [
-                                                {
-                                                    path: 'subtasks',
-                                                    populate: [
-                                                        {
-                                                            path: 'subtasks',
-                                                            populate: [
-                                                                {
-                                                                    path: 'subtasks',
-                                                                    populate: [
-                                                                        {
-                                                                            path: 'subtasks',
-                                                                            populate:
-                                                                                [
-                                                                                    {
-                                                                                        path: 'watcher',
-                                                                                        select: 'username'
-                                                                                    },
-                                                                                    {
-                                                                                        path: 'history',
-                                                                                        populate:
+                        ]
+                    },
+                    {
+                        path: 'subtasks',
+                        populate: [
+                            {
+                                path: 'subtasks',
+                                populate: [
+                                    {
+                                        path: 'subtasks',
+                                        populate: [
+                                            {
+                                                path: 'subtasks',
+                                                populate: [
+                                                    {
+                                                        path: 'subtasks',
+                                                        populate: [
+                                                            {
+                                                                path: 'subtasks',
+                                                                populate: [
+                                                                    {
+                                                                        path: 'subtasks',
+                                                                        populate:
+                                                                            [
+                                                                                {
+                                                                                    path: 'subtasks',
+                                                                                    populate:
+                                                                                        [
                                                                                             {
-                                                                                                path: 'author',
+                                                                                                path: 'watcher',
                                                                                                 select: 'username'
-                                                                                            }
-                                                                                    },
-                                                                                    {
-                                                                                        path: 'comments',
-                                                                                        populate:
-                                                                                            [
-                                                                                                {
-                                                                                                    path: 'author',
-                                                                                                    select: 'username'
-                                                                                                },
-                                                                                                {
-                                                                                                    path: 'replies',
-                                                                                                    populate:
+                                                                                            },
+                                                                                            {
+                                                                                                path: 'history',
+                                                                                                populate:
+                                                                                                    {
+                                                                                                        path: 'author',
+                                                                                                        select: 'username'
+                                                                                                    }
+                                                                                            },
+                                                                                            {
+                                                                                                path: 'comments',
+                                                                                                populate:
+                                                                                                    [
                                                                                                         {
                                                                                                             path: 'author',
                                                                                                             select: 'username'
+                                                                                                        },
+                                                                                                        {
+                                                                                                            path: 'replies',
+                                                                                                            populate:
+                                                                                                                {
+                                                                                                                    path: 'author',
+                                                                                                                    select: 'username'
+                                                                                                                }
                                                                                                         }
-                                                                                                }
-                                                                                            ]
-                                                                                    }
-                                                                                ]
-                                                                        },
-                                                                        {
-                                                                            path: 'watcher',
-                                                                            select: 'username'
-                                                                        },
-                                                                        {
-                                                                            path: 'history',
-                                                                            populate:
+                                                                                                    ]
+                                                                                            }
+                                                                                        ]
+                                                                                },
                                                                                 {
-                                                                                    path: 'author',
+                                                                                    path: 'watcher',
                                                                                     select: 'username'
-                                                                                }
-                                                                        },
-                                                                        {
-                                                                            path: 'comments',
-                                                                            populate:
-                                                                                [
-                                                                                    {
-                                                                                        path: 'author',
-                                                                                        select: 'username'
-                                                                                    },
-                                                                                    {
-                                                                                        path: 'replies',
-                                                                                        populate:
+                                                                                },
+                                                                                {
+                                                                                    path: 'history',
+                                                                                    populate:
+                                                                                        {
+                                                                                            path: 'author',
+                                                                                            select: 'username'
+                                                                                        }
+                                                                                },
+                                                                                {
+                                                                                    path: 'comments',
+                                                                                    populate:
+                                                                                        [
                                                                                             {
                                                                                                 path: 'author',
                                                                                                 select: 'username'
+                                                                                            },
+                                                                                            {
+                                                                                                path: 'replies',
+                                                                                                populate:
+                                                                                                    {
+                                                                                                        path: 'author',
+                                                                                                        select: 'username'
+                                                                                                    }
                                                                                             }
-                                                                                    }
-                                                                                ]
-                                                                        }
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    path: 'watcher',
-                                                                    select: 'username'
-                                                                },
-                                                                {
-                                                                    path: 'history',
-                                                                    populate: {
-                                                                        path: 'author',
+                                                                                        ]
+                                                                                }
+                                                                            ]
+                                                                    },
+                                                                    {
+                                                                        path: 'watcher',
                                                                         select: 'username'
-                                                                    }
-                                                                },
-                                                                {
-                                                                    path: 'comments',
-                                                                    populate: [
-                                                                        {
-                                                                            path: 'author',
-                                                                            select: 'username'
-                                                                        },
-                                                                        {
-                                                                            path: 'replies',
-                                                                            populate:
+                                                                    },
+                                                                    {
+                                                                        path: 'history',
+                                                                        populate:
+                                                                            {
+                                                                                path: 'author',
+                                                                                select: 'username'
+                                                                            }
+                                                                    },
+                                                                    {
+                                                                        path: 'comments',
+                                                                        populate:
+                                                                            [
                                                                                 {
                                                                                     path: 'author',
                                                                                     select: 'username'
+                                                                                },
+                                                                                {
+                                                                                    path: 'replies',
+                                                                                    populate:
+                                                                                        {
+                                                                                            path: 'author',
+                                                                                            select: 'username'
+                                                                                        }
                                                                                 }
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ]
-                                                        },
-                                                        {
-                                                            path: 'watcher',
-                                                            select: 'username'
-                                                        },
-                                                        {
-                                                            path: 'history',
-                                                            populate: {
-                                                                path: 'author',
+                                                                            ]
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                path: 'watcher',
                                                                 select: 'username'
-                                                            }
-                                                        },
-                                                        {
-                                                            path: 'comments',
-                                                            populate: [
-                                                                {
+                                                            },
+                                                            {
+                                                                path: 'history',
+                                                                populate: {
                                                                     path: 'author',
                                                                     select: 'username'
-                                                                },
-                                                                {
-                                                                    path: 'replies',
-                                                                    populate: {
+                                                                }
+                                                            },
+                                                            {
+                                                                path: 'comments',
+                                                                populate: [
+                                                                    {
                                                                         path: 'author',
                                                                         select: 'username'
+                                                                    },
+                                                                    {
+                                                                        path: 'replies',
+                                                                        populate:
+                                                                            {
+                                                                                path: 'author',
+                                                                                select: 'username'
+                                                                            }
                                                                     }
-                                                                }
-                                                            ]
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    path: 'watcher',
-                                                    select: 'username'
-                                                },
-                                                {
-                                                    path: 'history',
-                                                    populate: {
-                                                        path: 'author',
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        path: 'watcher',
                                                         select: 'username'
-                                                    }
-                                                },
-                                                {
-                                                    path: 'comments',
-                                                    populate: [
-                                                        {
+                                                    },
+                                                    {
+                                                        path: 'history',
+                                                        populate: {
                                                             path: 'author',
                                                             select: 'username'
-                                                        },
-                                                        {
-                                                            path: 'replies',
-                                                            populate: {
+                                                        }
+                                                    },
+                                                    {
+                                                        path: 'comments',
+                                                        populate: [
+                                                            {
                                                                 path: 'author',
                                                                 select: 'username'
+                                                            },
+                                                            {
+                                                                path: 'replies',
+                                                                populate: {
+                                                                    path: 'author',
+                                                                    select: 'username'
+                                                                }
                                                             }
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            path: 'watcher',
-                                            select: 'username'
-                                        },
-                                        {
-                                            path: 'history',
-                                            populate: {
-                                                path: 'author',
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                path: 'watcher',
                                                 select: 'username'
-                                            }
-                                        },
-                                        {
-                                            path: 'comments',
-                                            populate: [
-                                                {
+                                            },
+                                            {
+                                                path: 'history',
+                                                populate: {
                                                     path: 'author',
                                                     select: 'username'
-                                                },
-                                                {
-                                                    path: 'replies',
-                                                    populate: {
+                                                }
+                                            },
+                                            {
+                                                path: 'comments',
+                                                populate: [
+                                                    {
                                                         path: 'author',
                                                         select: 'username'
+                                                    },
+                                                    {
+                                                        path: 'replies',
+                                                        populate: {
+                                                            path: 'author',
+                                                            select: 'username'
+                                                        }
                                                     }
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    path: 'watcher',
-                                    select: 'username'
-                                },
-                                {
-                                    path: 'history',
-                                    populate: {
-                                        path: 'author',
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        path: 'watcher',
                                         select: 'username'
-                                    }
-                                },
-                                {
-                                    path: 'comments',
-                                    populate: [
-                                        {
+                                    },
+                                    {
+                                        path: 'history',
+                                        populate: {
                                             path: 'author',
                                             select: 'username'
-                                        },
-                                        {
-                                            path: 'replies',
-                                            populate: {
+                                        }
+                                    },
+                                    {
+                                        path: 'comments',
+                                        populate: [
+                                            {
                                                 path: 'author',
                                                 select: 'username'
+                                            },
+                                            {
+                                                path: 'replies',
+                                                populate: {
+                                                    path: 'author',
+                                                    select: 'username'
+                                                }
                                             }
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            path: 'watcher',
-                            select: 'username'
-                        },
-                        {
-                            path: 'history',
-                            populate: {
-                                path: 'author',
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                path: 'watcher',
                                 select: 'username'
-                            }
-                        },
-                        {
-                            path: 'comments',
-                            populate: [
-                                {
+                            },
+                            {
+                                path: 'history',
+                                populate: {
                                     path: 'author',
                                     select: 'username'
-                                },
-                                {
-                                    path: 'replies',
-                                    populate: {
+                                }
+                            },
+                            {
+                                path: 'comments',
+                                populate: [
+                                    {
                                         path: 'author',
                                         select: 'username'
+                                    },
+                                    {
+                                        path: 'replies',
+                                        populate: {
+                                            path: 'author',
+                                            select: 'username'
+                                        }
                                     }
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        })
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            })
 
         res.json(board)
     })
