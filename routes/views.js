@@ -73,7 +73,7 @@ router.post(
 )
 
 // delete view
-router.post(
+router.delete(
     '/:boardId/deleteView',
     isLoggedIn,
     hasPermission('MANAGE:VIEW'),
@@ -93,6 +93,30 @@ router.post(
 
         await View.findByIdAndDelete(viewId)
         await board.save()
+        res.json({ success: true, message: 'OK' })
+    })
+)
+
+// rename view
+router.put(
+    '/:viewId/renameView',
+    isLoggedIn,
+    hasPermission('MANAGE:VIEW'),
+    wrapAsync(async (req, res) => {
+        const { viewId } = req.params
+        const { name } = req.body
+
+        const view = await View.findById(viewId)
+        view.name = name
+
+        // pusherTrigger({
+        //     req,
+        //     boardId: boardId,
+        //     event: 'setSharing',
+        //     body: { share }
+        // })
+
+        await view.save()
         res.json({ success: true, message: 'OK' })
     })
 )
