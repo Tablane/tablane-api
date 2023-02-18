@@ -1,7 +1,76 @@
 const router = require('express').Router()
 const View = require('../models/view')
+const Board = require('../models/board')
 const { wrapAsync, isLoggedIn, hasPermission } = require('../middleware')
 const { pusherTrigger } = require('../utils/pusherTrigger')
+
+// add new view
+router.post(
+    '/:boardId/addView',
+    isLoggedIn,
+    hasPermission('MANAGE:SHARING'),
+    wrapAsync(async (req, res) => {
+        const { boardId } = req.params
+        const { type } = req.body
+
+        const board = await Board.findById(boardId).populate('views')
+
+        const getName = (index = 0) => {
+            let name =
+                index === 0
+                    ? type.charAt(0).toUpperCase() + type.slice(1)
+                    : `${type.charAt(0).toUpperCase() + type.slice(1)} ${index}`
+            const existingNames = board.views.map(x => x.name)
+
+            if (existingNames.includes(name)) {
+                return getName(index + 1)
+            }
+
+            return name
+        }
+
+        const getShortId = () => {
+            const chars =
+                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+            const firstChar = chars[Math.floor(Math.random() * chars.length)]
+            const secondChar = chars[Math.floor(Math.random() * chars.length)]
+            return `${firstChar}${secondChar}`
+        }
+
+        const getId = () => {
+            let id = getShortId()
+            const existingIds = board.views.map(x => x.id)
+
+            if (existingIds.includes(id)) {
+                return getId()
+            }
+
+            return id
+        }
+
+        const view = new View({
+            name: getName(),
+            id: getId(),
+            filters: [],
+            groupBy: 'none',
+            sharing: false,
+            type,
+            board
+        })
+        board.views.push(view)
+
+        // pusherTrigger({
+        //     req,
+        //     boardId: boardId,
+        //     event: 'setSharing',
+        //     body: { share }
+        // })
+
+        await view.save()
+        await board.save()
+        res.json({ success: true, message: 'OK' })
+    })
+)
 
 // change share state
 router.put(
