@@ -103,7 +103,11 @@ router.get(
                 populate: {
                     path: 'boards',
                     model: 'Board',
-                    select: 'name'
+                    select: 'name',
+                    populate: {
+                        path: 'views',
+                        select: 'id'
+                    }
                 }
             })
             .populate({
