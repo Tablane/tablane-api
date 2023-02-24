@@ -247,7 +247,11 @@ router.get(
             }
         ])
 
-        if (!view.sharing) return res.status(403).send('Forbidden')
+        if (!view.sharing)
+            return res.status(403).json({
+                success: false,
+                message: 'Forbidden'
+            })
         res.json(board)
     })
 )
