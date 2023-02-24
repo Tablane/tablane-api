@@ -676,6 +676,23 @@ router.post(
         )
         const space = workspace.spaces.find(x => x._id.toString() === spaceId)
 
+        const getShortId = () => {
+            const chars =
+                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+            const firstChar = chars[Math.floor(Math.random() * chars.length)]
+            const secondChar = chars[Math.floor(Math.random() * chars.length)]
+            return `${firstChar}${secondChar}`
+        }
+
+        const view = new View({
+            name: 'List',
+            id: getShortId(),
+            filters: [],
+            groupBy: 'none',
+            sharing: false,
+            type: 'List'
+        })
+
         const board = new Board({
             _id,
             name,
@@ -683,8 +700,10 @@ router.post(
             space: spaceId,
             attributes: [],
             taskGroups: [],
-            sharing: false
+            views: [view]
         })
+
+        view.board = board
         space.boards.push(board)
 
         pusherTrigger({
@@ -694,9 +713,17 @@ router.post(
             body: { spaceId, name, _id }
         })
 
+        await view.save()
         await space.save()
         await board.save()
-        res.json({ success: true, message: 'OK' })
+
+        res.json({
+            success: true,
+            message: {
+                viewId: view._id,
+                viewShortId: view.id
+            }
+        })
     })
 )
 
