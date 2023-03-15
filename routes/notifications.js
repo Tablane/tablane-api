@@ -103,36 +103,6 @@ router.post(
     })
 )
 
-// create notification
-router.post(
-    '/:workspaceId/:taskId',
-    isLoggedIn,
-    wrapAsync(async (req, res) => {
-        throw new AppError('This route is not available in production', 400)
-        const { workspaceId, taskId } = req.params
-        const { change_type } = req.body
-        const notification = new Notification({
-            timestamp: Date.now(),
-            user: req.user,
-            change_type,
-            from: {
-                text: 'working on it',
-                color: '#00C2E0'
-            },
-            to: {
-                text: 'done',
-                color: '#50E898'
-            },
-            task: taskId,
-            workspace: workspaceId,
-            cleared: false
-        })
-
-        await notification.save()
-        res.json({ success: true, message: 'OK' })
-    })
-)
-
 // clear notification
 router.delete(
     '/:workspaceId/:taskId',
