@@ -2,6 +2,7 @@ const { isLoggedIn, wrapAsync } = require('../middleware')
 const router = require('express').Router()
 const Notification = require('../models/notification')
 const AppError = require('../HttpError')
+const { ObjectId } = require('mongoose').Types
 
 // get notifications
 router.post(
@@ -10,30 +11,95 @@ router.post(
     wrapAsync(async (req, res) => {
         const { workspaceId } = req.params
         const { condition } = req.body
-        const notifications = await Notification.find({
-            workspace: workspaceId,
-            user: req.user._id,
-            ...condition
-        })
-            .sort({ $natural: -1 })
-            .populate({
-                path: 'user',
-                select: 'username'
-            })
-            .populate({
-                path: 'task',
-                select: ['name', 'board'],
-                populate: {
-                    path: 'board',
-                    select: ['name'],
-                    populate: {
-                        path: 'space',
-                        select: ['name']
+
+        const notifications = await Notification.aggregate([
+            {
+                $match: {
+                    workspace: ObjectId(workspaceId),
+                    user: req.user._id,
+                    ...condition
+                }
+            },
+            {
+                $lookup: {
+                    from: 'tasks',
+                    localField: 'task',
+                    foreignField: '_id',
+                    as: 'task'
+                }
+            },
+            {
+                $unwind: '$task'
+            },
+            {
+                $lookup: {
+                    from: 'boards',
+                    localField: 'task.board',
+                    foreignField: '_id',
+                    as: 'task.board'
+                }
+            },
+            {
+                $unwind: '$task.board'
+            },
+            {
+                $lookup: {
+                    from: 'spaces',
+                    localField: 'task.board.space',
+                    foreignField: '_id',
+                    as: 'task.board.space'
+                }
+            },
+            {
+                $unwind: '$task.board.space'
+            },
+            {
+                $sort: {
+                    timestamp: -1
+                }
+            },
+            {
+                $group: {
+                    _id: '$task._id',
+                    task: {
+                        $first: '$task'
+                    },
+                    changes: {
+                        $push: {
+                            timestamp: '$timestamp',
+                            user: '$user',
+                            change_type: '$change_type',
+                            payload: '$payload'
+                        }
                     }
                 }
-            })
+            },
+            {
+                $sort: {
+                    'changes.timestamp': -1
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    task: {
+                        _id: 1,
+                        name: 1,
+                        board: {
+                            _id: '$task.board._id',
+                            name: '$task.board.name',
+                            space: {
+                                _id: '$task.board.space._id',
+                                name: '$task.board.space.name'
+                            }
+                        }
+                    },
+                    changes: 1
+                }
+            }
+        ])
 
-        res.json(notifications)
+        res.json({ notifications })
     })
 )
 

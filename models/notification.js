@@ -1,24 +1,22 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+
 const userSchema = new mongoose.Schema({
-    change_type: String,
     timestamp: Number,
     user: {
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    notificationOwner: {
+    actor: {
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    from: {
-        text: String,
-        color: String
+    referencedUser: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
     },
-    to: {
-        text: String,
-        color: String
-    },
+    change_type: String,
+    payload: Schema.Types.Mixed,
     task: {
         type: Schema.Types.ObjectId,
         ref: 'Task'
