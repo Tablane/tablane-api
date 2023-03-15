@@ -7,6 +7,7 @@ const Activity = require('../models/activity')
 const { addActivity } = require('../controllers/activities')
 const { addWatcher } = require('../utils/addWatcher')
 const { pusherTrigger } = require('../utils/pusherTrigger')
+const { notificationTrigger } = require('../utils/notificationTrigger')
 
 // add new watcher to task
 router.post(
@@ -110,7 +111,7 @@ router.patch(
     wrapAsync(async (req, res) => {
         const { boardId, taskId } = req.params
         const { column, value, type } = req.body
-        const task = await Task.findById(taskId)
+        const task = await Task.findById(taskId).populate('board')
 
         addWatcher(task, req.user)
 
@@ -136,6 +137,35 @@ router.patch(
                     field: column,
                     from: option?.value,
                     to: value
+                })
+
+                const attribute = task.board.attributes.find(
+                    x => x._id.toString() === column
+                )
+                const from = attribute.labels.find(
+                    x => x._id.toString() === option?.value
+                )
+                const to = attribute.labels.find(
+                    x => x._id.toString() === value
+                )
+
+                notificationTrigger({
+                    req,
+                    watcher: task.watcher,
+                    taskId,
+                    change_type: 'changed status',
+                    referencedUser: null,
+                    workspaceId: task.workspace,
+                    payload: {
+                        from: {
+                            text: from?.name,
+                            color: from?.color
+                        },
+                        to: {
+                            text: to.name,
+                            color: to.color
+                        }
+                    }
                 })
             }
             if (option) option.value = value
