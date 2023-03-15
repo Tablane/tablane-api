@@ -122,6 +122,24 @@ router.patch(
                 from: task.name,
                 to: value
             })
+
+            notificationTrigger({
+                req,
+                watcher: task.watcher,
+                taskId,
+                change_type: 'changed name',
+                referencedUser: null,
+                workspaceId: task.workspace,
+                payload: {
+                    from: {
+                        text: task.name
+                    },
+                    to: {
+                        text: value
+                    }
+                }
+            })
+
             task.name = value
         } else if (type === 'description') {
             task.description = value
