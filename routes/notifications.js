@@ -54,6 +54,14 @@ router.post(
                 $unwind: '$task.board.space'
             },
             {
+                $lookup: {
+                    from: 'users',
+                    localField: 'actor',
+                    foreignField: '_id',
+                    as: 'actor'
+                }
+            },
+            {
                 $sort: {
                     timestamp: -1
                 }
@@ -67,7 +75,7 @@ router.post(
                     changes: {
                         $push: {
                             timestamp: '$timestamp',
-                            user: '$user',
+                            actor: { username: '$actor.username' },
                             change_type: '$change_type',
                             payload: '$payload'
                         }
