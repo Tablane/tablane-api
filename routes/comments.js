@@ -4,6 +4,7 @@ const Task = require('../models/task')
 const Comment = require('../models/comment')
 const { addWatcher } = require('../utils/addWatcher')
 const { pusherTrigger } = require('../utils/pusherTrigger')
+const { notificationTrigger } = require('../utils/notificationTrigger')
 
 // add new comment to Task
 router.post(
@@ -34,6 +35,17 @@ router.post(
             boardId: task.board,
             event: 'addTaskComment',
             body: { content, author: req.user.username, taskId, _id }
+        })
+
+        notificationTrigger({
+            req,
+            watcher: task.watcher,
+            taskId,
+            change_type: 'new comment',
+            referencedUser: null,
+            referencedComment: comment,
+            workspaceId: task.workspace,
+            payload: null
         })
 
         await comment.save()

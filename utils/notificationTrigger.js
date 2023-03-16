@@ -6,6 +6,7 @@ exports.notificationTrigger = async ({
     referencedUser,
     taskId,
     change_type,
+    referencedComment = null,
     payload,
     workspaceId
 }) => {
@@ -17,6 +18,7 @@ exports.notificationTrigger = async ({
             actor: req.user,
             user,
             referencedUser,
+            referencedComment,
             change_type,
             payload,
             task: taskId,

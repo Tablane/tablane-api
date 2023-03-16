@@ -62,6 +62,65 @@ router.post(
                 }
             },
             {
+                $lookup: {
+                    from: 'comments',
+                    localField: 'referencedComment',
+                    foreignField: '_id',
+                    as: 'referencedComment'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$referencedComment',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+
+            {
+                $lookup: {
+                    from: 'comments',
+                    let: { replyIds: '$referencedComment.replies' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $isArray: '$$replyIds' },
+                                        { $in: ['$_id', '$$replyIds'] }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: 'author',
+                                foreignField: '_id',
+                                as: 'author'
+                            }
+                        },
+                        {
+                            $addFields: {
+                                author: { $arrayElemAt: ['$author', 0] }
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                content: 1,
+                                timestamp: 1,
+                                author: {
+                                    _id: 1,
+                                    username: 1
+                                }
+                            }
+                        }
+                    ],
+                    as: 'referencedComment.replies'
+                }
+            },
+
+            {
                 $sort: {
                     timestamp: -1
                 }
@@ -75,7 +134,12 @@ router.post(
                     changes: {
                         $push: {
                             timestamp: '$timestamp',
-                            actor: { username: '$actor.username' },
+                            actor: {
+                                username: {
+                                    $arrayElemAt: ['$actor.username', 0]
+                                }
+                            },
+                            referencedComment: '$referencedComment',
                             change_type: '$change_type',
                             payload: '$payload'
                         }
