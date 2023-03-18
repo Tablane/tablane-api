@@ -33,6 +33,26 @@ router.post(
             },
             {
                 $lookup: {
+                    from: 'users',
+                    let: { watchers: '$task.watcher' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $in: ['$_id', '$$watchers'] }
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                username: 1
+                            }
+                        }
+                    ],
+                    as: 'task.watcher'
+                }
+            },
+            {
+                $lookup: {
                     from: 'boards',
                     localField: 'task.board',
                     foreignField: '_id',
@@ -75,7 +95,6 @@ router.post(
                     preserveNullAndEmptyArrays: true
                 }
             },
-
             {
                 $lookup: {
                     from: 'comments',
@@ -119,7 +138,6 @@ router.post(
                     as: 'referencedComment.replies'
                 }
             },
-
             {
                 $sort: {
                     timestamp: -1
@@ -157,6 +175,7 @@ router.post(
                     task: {
                         _id: 1,
                         name: 1,
+                        watcher: 1,
                         board: {
                             _id: '$task.board._id',
                             name: '$task.board.name',
