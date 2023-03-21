@@ -125,7 +125,8 @@ router.post(
             author: req.user,
             timestamp: new Date().getTime(),
             content,
-            task: taskId
+            task: taskId,
+            thread: comment
         })
 
         comment.replies.push(reply)
@@ -141,6 +142,17 @@ router.post(
                 content,
                 _id
             }
+        })
+
+        notificationTrigger({
+            req,
+            watcher: comment.task.watcher,
+            taskId,
+            change_type: 'new reply',
+            referencedUser: null,
+            referencedComment: reply,
+            workspaceId: comment.task.workspace,
+            payload: null
         })
 
         await comment.save()

@@ -98,6 +98,20 @@ router.post(
             {
                 $lookup: {
                     from: 'comments',
+                    localField: 'referencedComment.thread',
+                    foreignField: '_id',
+                    as: 'referencedComment.thread'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$referencedComment.thread',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'comments',
                     let: { replyIds: '$referencedComment.replies' },
                     pipeline: [
                         {

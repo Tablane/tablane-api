@@ -13,6 +13,10 @@ const commentSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Task'
     },
+    thread: {
+        type: Schema.Types.ObjectId,
+        ref: 'Comment'
+    },
     replies: [
         {
             type: Schema.Types.ObjectId,
