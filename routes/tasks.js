@@ -215,7 +215,7 @@ router.delete(
     hasPermission('MANAGE:TASK'),
     wrapAsync(async (req, res) => {
         const { boardId, taskId, optionId } = req.params
-        const task = await Task.findById(taskId)
+        const task = await Task.findById(taskId).populate('board')
 
         addWatcher(task, req.user)
 
@@ -230,6 +230,32 @@ router.delete(
                 field: optionId,
                 from: options[optionIndex].value,
                 to: null
+            })
+
+            const { column, value } = options[optionIndex]
+
+            const attribute = task.board.attributes.find(
+                x => x._id.toString() === column
+            )
+            const from = attribute.labels.find(x => x._id.toString() === value)
+
+            notificationTrigger({
+                req,
+                watcher: task.watcher,
+                taskId,
+                change_type: 'changed status',
+                referencedUser: null,
+                workspaceId: task.workspace,
+                payload: {
+                    from: {
+                        text: from?.name ?? '',
+                        color: from?.color ?? '#c4c4c4'
+                    },
+                    to: {
+                        text: '',
+                        color: '#c4c4c4'
+                    }
+                }
             })
         }
 
