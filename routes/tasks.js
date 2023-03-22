@@ -176,8 +176,8 @@ router.patch(
                     workspaceId: task.workspace,
                     payload: {
                         from: {
-                            text: from?.name,
-                            color: from?.color
+                            text: from?.name ?? '',
+                            color: from?.color ?? '#c4c4c4'
                         },
                         to: {
                             text: to.name,
