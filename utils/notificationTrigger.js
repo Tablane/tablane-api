@@ -6,6 +6,8 @@ exports.notificationTrigger = async ({
     referencedUser,
     taskId,
     change_type,
+    field_type,
+    field_name,
     referencedComment = null,
     payload,
     workspaceId
@@ -20,6 +22,8 @@ exports.notificationTrigger = async ({
             referencedUser,
             referencedComment,
             change_type,
+            field_type,
+            field_name,
             payload,
             task: taskId,
             workspace: workspaceId,

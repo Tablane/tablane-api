@@ -173,6 +173,8 @@ router.post(
                             },
                             referencedComment: '$referencedComment',
                             change_type: '$change_type',
+                            field_type: '$field_type',
+                            field_name: '$field_name',
                             payload: '$payload'
                         }
                     }

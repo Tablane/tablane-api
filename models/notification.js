@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema({
         ref: 'Comment'
     },
     change_type: String,
+    field_type: String,
+    field_name: String,
     payload: Schema.Types.Mixed,
     task: {
         type: Schema.Types.ObjectId,

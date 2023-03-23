@@ -141,8 +141,6 @@ router.patch(
             })
 
             task.name = value
-        } else if (type === 'description') {
-            task.description = value
         }
 
         const options = task.options
@@ -171,7 +169,9 @@ router.patch(
                     req,
                     watcher: task.watcher,
                     taskId,
-                    change_type: 'changed status',
+                    change_type: 'changed field',
+                    field_type: attribute.type,
+                    field_name: attribute.name,
                     referencedUser: null,
                     workspaceId: task.workspace,
                     payload: {
@@ -189,8 +189,36 @@ router.patch(
             if (option) option.value = value
             else options.push({ column, value })
         } else if (type === 'text') {
-            if (option) option.value = value
-            else options.push({ column, value })
+            let from = ''
+            if (option) {
+                from = option.value
+                option.value = value
+            } else {
+                options.push({ column, value })
+            }
+
+            const attribute = task.board.attributes.find(
+                x => x._id.toString() === column
+            )
+
+            notificationTrigger({
+                req,
+                watcher: task.watcher,
+                taskId,
+                change_type: 'changed field',
+                field_type: attribute.type,
+                field_name: attribute.name,
+                referencedUser: null,
+                workspaceId: task.workspace,
+                payload: {
+                    from: {
+                        text: from
+                    },
+                    to: {
+                        text: value
+                    }
+                }
+            })
         } else if (type === 'person') {
             if (option) option.value = value
             else options.push({ column, value })
@@ -243,7 +271,9 @@ router.delete(
                 req,
                 watcher: task.watcher,
                 taskId,
-                change_type: 'changed status',
+                change_type: 'changed field',
+                field_type: attribute.type,
+                field_name: attribute.name,
                 referencedUser: null,
                 workspaceId: task.workspace,
                 payload: {
