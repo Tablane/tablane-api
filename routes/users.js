@@ -158,24 +158,6 @@ router.post(
                 path: 'workspaces',
                 select: ['id', 'name']
             })
-            .populate({
-                path: 'assignedTasks',
-                select: ['name', 'options', 'workspace', 'board'],
-                populate: [
-                    {
-                        path: 'workspace',
-                        select: ['_id']
-                    },
-                    {
-                        path: 'board',
-                        select: ['space', 'name'],
-                        populate: {
-                            path: 'space',
-                            select: 'name'
-                        }
-                    }
-                ]
-            })
         if (!user)
             throw new AppError('User does not exist', 400, {
                 friendlyError: true
@@ -318,8 +300,7 @@ router.post(
                 username: user.username,
                 workspaces: user.workspaces,
                 _id: user._id,
-                assignedTasks: user.assignedTasks,
-                newNotifications: user.newNotifications
+                unseenNotifications: user.unseenNotifications
             }
         })
     })
@@ -343,24 +324,6 @@ router.get(
             .populate({
                 path: 'workspaces',
                 select: ['id', 'name']
-            })
-            .populate({
-                path: 'assignedTasks',
-                select: ['name', 'options', 'workspace', 'board'],
-                populate: [
-                    {
-                        path: 'workspace',
-                        select: ['_id']
-                    },
-                    {
-                        path: 'board',
-                        select: ['space', 'name'],
-                        populate: {
-                            path: 'space',
-                            select: 'name'
-                        }
-                    }
-                ]
             })
         const currentRefreshToken = user.refreshTokens.find(
             x => x.token === token
@@ -387,8 +350,7 @@ router.get(
             username: user.username,
             workspaces: user.workspaces,
             _id: user._id,
-            assignedTasks: user.assignedTasks,
-            newNotifications: user.newNotifications
+            unseenNotifications: user.unseenNotifications
         })
     })
 )
@@ -397,35 +359,16 @@ router.get(
     '/',
     isLoggedIn,
     wrapAsync(async (req, res) => {
-        const user = await User.findById(req.user._id)
-            .populate({
-                path: 'workspaces',
-                select: ['id', 'name']
-            })
-            .populate({
-                path: 'assignedTasks',
-                select: ['name', 'options', 'workspace', 'board'],
-                populate: [
-                    {
-                        path: 'workspace',
-                        select: ['_id']
-                    },
-                    {
-                        path: 'board',
-                        select: ['space', 'name'],
-                        populate: {
-                            path: 'space',
-                            select: 'name'
-                        }
-                    }
-                ]
-            })
+        const user = await User.findById(req.user._id).populate({
+            path: 'workspaces',
+            select: ['id', 'name']
+        })
+
         res.json({
             username: user.username,
             workspaces: user.workspaces,
             _id: user._id,
-            assignedTasks: user.assignedTasks,
-            newNotifications: user.newNotifications,
+            unseenNotifications: user.unseenNotifications,
             email: user.email,
             mfa_methods: {
                 totp: { enabled: user.mfa_methods.totp.enabled },

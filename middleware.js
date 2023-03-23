@@ -64,8 +64,7 @@ module.exports.isLoggedIn = wrapAsync(async (req, res, next) => {
             username: user.username,
             workspaces: user.workspaces,
             _id: user._id,
-            assignedTasks: user.assignedTasks,
-            newNotifications: user.newNotifications
+            unseenNotifications: user.unseenNotifications
         }
     } catch (err) {
         throw new AppError('Invalid access token', 403)
