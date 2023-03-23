@@ -97,6 +97,20 @@ router.post(
             },
             {
                 $lookup: {
+                    from: 'users',
+                    localField: 'referencedUser',
+                    foreignField: '_id',
+                    as: 'referencedUser'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$referencedUser',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
                     from: 'comments',
                     localField: 'referencedComment.thread',
                     foreignField: '_id',
@@ -172,6 +186,10 @@ router.post(
                                 }
                             },
                             referencedComment: '$referencedComment',
+                            referencedUser: {
+                                _id: '$referencedUser._id',
+                                username: '$referencedUser.username'
+                            },
                             change_type: '$change_type',
                             field_type: '$field_type',
                             field_name: '$field_name',

@@ -220,8 +220,33 @@ router.patch(
                 }
             })
         } else if (type === 'person') {
+            const from = option.value
+
             if (option) option.value = value
             else options.push({ column, value })
+
+            const attribute = task.board.attributes.find(
+                x => x._id.toString() === column
+            )
+
+            // get symmetric difference before/after array
+            const added = value.filter(x => !from.includes(x))
+            const removed = from.filter(x => !value.includes(x))
+
+            const field_type =
+                attribute.type + '.' + (added.length >= 1 ? 'added' : 'removed')
+
+            notificationTrigger({
+                req,
+                watcher: task.watcher,
+                taskId,
+                change_type: 'changed field',
+                field_type,
+                field_name: attribute.name,
+                referencedUser: [...added, ...removed][0],
+                workspaceId: task.workspace,
+                payload: null
+            })
         }
 
         pusherTrigger({
