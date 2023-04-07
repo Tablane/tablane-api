@@ -93,6 +93,9 @@ app.post(
                     x => x.user.toString() === req.user._id.toString()
                 )
                 if (!localUser) throw new PermissionError('READ:PUBLIC')
+            } else if (type === 'user') {
+                if (req.user._id.toString() !== id)
+                    throw new PermissionError('READ:PUBLIC')
             } else {
                 throw new PermissionError('READ:PUBLIC')
             }

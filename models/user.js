@@ -4,8 +4,7 @@ const Schema = mongoose.Schema
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     password: {
         type: String
@@ -21,10 +20,12 @@ const userSchema = new mongoose.Schema({
         required: true,
         match: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     },
-    unseenNotifications: {
-        type: Number,
-        default: 0
-    },
+    unseenNotifications: [
+        {
+            workspaceId: Number,
+            unseenNotifications: Number
+        }
+    ],
     blocked: {
         type: Boolean,
         default: false

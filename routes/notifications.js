@@ -1,7 +1,8 @@
 const { isLoggedIn, wrapAsync } = require('../middleware')
 const router = require('express').Router()
 const Notification = require('../models/notification')
-const AppError = require('../HttpError')
+const User = require('../models/user')
+const pusher = require('../pusher')
 const { ObjectId } = require('mongoose').Types
 
 // get notifications
@@ -224,6 +225,19 @@ router.post(
             }
         ])
 
+        const user = await User.findById(req.user._id)
+        const unseenCountGroup = user.unseenNotifications.find(
+            x => x.workspaceId === workspaceId
+        )
+        if (unseenCountGroup) unseenCountGroup.unseenCount = 0
+        user.save()
+
+        pusher.trigger(
+            'private-user-' + user._id.toString(),
+            'notification-update-' + workspaceId,
+            'reset'
+        )
+
         res.json({ notifications })
     })
 )
@@ -271,6 +285,25 @@ router.patch(
         })
 
         res.json({ success: true, message: 'OK' })
+    })
+)
+
+// get unseen notification count
+router.get(
+    '/:workspaceId/unseen',
+    isLoggedIn,
+    wrapAsync(async (req, res) => {
+        const { workspaceId } = req.params
+
+        const user = await User.findById(req.user._id)
+        const unseenCountGroup = user.unseenNotifications.find(
+            x => x.workspaceId === workspaceId
+        )
+
+        res.json({
+            success: true,
+            unseenCount: unseenCountGroup?.unseenCount ?? 0
+        })
     })
 )
 
