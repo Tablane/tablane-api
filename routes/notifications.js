@@ -180,6 +180,7 @@ router.post(
                     },
                     changes: {
                         $push: {
+                            _id: '$_id',
                             timestamp: '$timestamp',
                             actor: {
                                 username: {
@@ -244,12 +245,13 @@ router.post(
 
 // clear notification
 router.delete(
-    '/:workspaceId/:taskId',
+    '/:workspaceId/:taskId/changes',
     isLoggedIn,
     wrapAsync(async (req, res) => {
         const { workspaceId, taskId } = req.params
-        const { condition } = req.body
+        const { condition, changeIds } = req.body
         const notifications = await Notification.find({
+            _id: { $in: changeIds },
             ...condition,
             workspace: workspaceId,
             task: taskId,
@@ -267,12 +269,13 @@ router.delete(
 
 // unclear notification
 router.patch(
-    '/:workspaceId/:taskId',
+    '/:workspaceId/:taskId/changes',
     isLoggedIn,
     wrapAsync(async (req, res) => {
         const { workspaceId, taskId } = req.params
-        const { condition } = req.body
+        const { condition, changeIds } = req.body
         const notifications = await Notification.find({
+            _id: { $in: changeIds },
             ...condition,
             workspace: workspaceId,
             task: taskId,
