@@ -18,7 +18,10 @@ router.post(
                 $match: {
                     workspace: ObjectId(workspaceId),
                     user: req.user._id,
-                    ...condition
+                    ...condition,
+                    timestamp: {
+                        $gte: new Date().getTime() - 30 * 24 * 60 * 60 * 1000
+                    }
                 }
             },
             {
